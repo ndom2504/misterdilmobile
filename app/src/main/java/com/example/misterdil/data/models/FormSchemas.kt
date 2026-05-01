@@ -416,21 +416,21 @@ object FormSchemas {
                 label = "Score CRS estimé",
                 type = FieldType.READ_ONLY,
                 required = false,
-                value = "Calcul en cours..."
+                value = "En cours de calcul..."
             ),
             FormField(
                 id = "eligible_program",
                 label = "Programme probable",
                 type = FieldType.READ_ONLY,
                 required = false,
-                value = "FSW (Federal Skilled Worker)"
+                value = "À déterminer"
             ),
             FormField(
                 id = "eligibility_status",
                 label = "Statut d'éligibilité",
                 type = FieldType.READ_ONLY,
                 required = false,
-                value = "⚠️ Informations incomplètes"
+                value = "⏳ Remplissez le formulaire pour voir votre score"
             )
         )
     )

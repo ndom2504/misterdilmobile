@@ -16,6 +16,7 @@ import com.example.misterdil.data.models.*
 fun DynamicForm(
     schema: FormSchema,
     onFieldValueChange: (fieldId: String, value: String) -> Unit,
+    fieldValues: Map<String, String> = emptyMap(),
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -52,7 +53,8 @@ fun DynamicForm(
         schema.sections.forEach { section ->
             FormSectionCard(
                 section = section,
-                onFieldValueChange = onFieldValueChange
+                onFieldValueChange = onFieldValueChange,
+                fieldValues = fieldValues
             )
         }
     }
@@ -61,7 +63,8 @@ fun DynamicForm(
 @Composable
 fun FormSectionCard(
     section: FormSection,
-    onFieldValueChange: (fieldId: String, value: String) -> Unit
+    onFieldValueChange: (fieldId: String, value: String) -> Unit,
+    fieldValues: Map<String, String> = emptyMap()
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -92,7 +95,8 @@ fun FormSectionCard(
                 FormFieldRenderer(
                     field = field,
                     allFields = section.fields,
-                    onValueChange = onFieldValueChange
+                    onValueChange = onFieldValueChange,
+                    fieldValues = fieldValues
                 )
             }
         }
@@ -102,10 +106,10 @@ fun FormSectionCard(
 @Composable
 fun FormFieldRenderer(
     field: FormField,
-    allFields: List<FormField>,
-    onValueChange: (fieldId: String, value: String) -> Unit
+    onValueChange: (fieldId: String, value: String) -> Unit,
+    allFields: List<FormField> = emptyList(),
+    fieldValues: Map<String, String> = emptyMap()
 ) {
-    // Check conditional visibility
     val isVisible = evaluateVisibility(field, allFields)
     
     if (!isVisible) return
@@ -413,7 +417,12 @@ fun SectionHeader(field: FormField) {
 }
 
 @Composable
-fun ReadOnlyField(field: FormField) {
+fun ReadOnlyField(
+    field: FormField,
+    dynamicValue: String? = null
+) {
+    val displayValue = dynamicValue ?: field.value
+    
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -429,7 +438,7 @@ fun ReadOnlyField(field: FormField) {
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                field.value,
+                displayValue,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary
             )

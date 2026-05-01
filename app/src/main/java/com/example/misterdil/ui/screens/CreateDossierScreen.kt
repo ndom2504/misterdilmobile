@@ -274,7 +274,8 @@ fun CreateDossierScreen(
                             schema = formSchema,
                             onFieldValueChange = { fieldId, value ->
                                 formFields[fieldId] = value
-                            }
+                            },
+                            fieldValues = formFields.toMap()
                         )
                     } else {
                         Text(
