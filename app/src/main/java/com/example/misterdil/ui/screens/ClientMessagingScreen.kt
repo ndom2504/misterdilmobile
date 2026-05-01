@@ -46,10 +46,14 @@ fun ClientMessagingScreen(
             ) {
                 ConversationListScreen(
                     conversations = conversations,
-                    onConversationClick = { selectedConversation = it },
+                    onConversationClick = { 
+                        selectedConversation = it
+                        viewModel.setConversation(it.id)
+                    },
                     modifier = Modifier.fillMaxSize()
                 )
             }
+            @OptIn(ExperimentalMaterial3Api::class)
             VerticalDivider()
             // Conversation détail (droite)
             if (selectedConversation != null) {
@@ -78,7 +82,10 @@ fun ClientMessagingScreen(
         if (selectedConversation == null) {
             ConversationListScreen(
                 conversations = conversations,
-                onConversationClick = { selectedConversation = it },
+                onConversationClick = { 
+                    selectedConversation = it
+                    viewModel.setConversation(it.id)
+                },
                 modifier = modifier
             )
         } else {
@@ -167,7 +174,7 @@ fun ConversationDetailScreen(
                     }
                 },
                 actions = {
-                    TextButton(onClick = { onNavigateToDossier("dossier/${conversation.dossierId}") }) {
+                    TextButton(onClick = { onNavigateToDossier(conversation.id) }) {
                         Text("Voir le dossier")
                     }
                 }
@@ -193,7 +200,7 @@ fun ConversationDetailScreen(
                     MessageBubble(
                         text = "Dossier créé",
                         sender = MessageSender.SYSTEM,
-                        timestamp = conversation.createdAt
+                        timestamp = conversation.time
                     )
                 }
 
@@ -202,7 +209,7 @@ fun ConversationDetailScreen(
                     MessageBubble(
                         text = msg.text,
                         sender = if (msg.isFromMe) MessageSender.CLIENT else MessageSender.ADMIN,
-                        timestamp = msg.timestamp
+                        timestamp = msg.timestamp.toString()
                     )
                 }
             }
@@ -230,7 +237,7 @@ fun ConversationDetailScreen(
                 IconButton(
                     onClick = {
                         if (messageText.isNotBlank()) {
-                            viewModel.sendMessage(conversation.id, messageText)
+                            viewModel.sendMessage(messageText)
                             messageText = ""
                         }
                     }
