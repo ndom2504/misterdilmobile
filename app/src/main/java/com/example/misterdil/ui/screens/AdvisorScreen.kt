@@ -16,6 +16,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,9 +41,15 @@ fun AdvisorScreen(
 ) {
     val admins by viewModel.admins.collectAsState()
     val isSelectionMode = onAdvisorSelected != null
+    var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
+        isLoading = true
         viewModel.loadAdmins()
+    }
+
+    LaunchedEffect(admins) {
+        if (admins.isNotEmpty()) isLoading = false
     }
 
     Scaffold(
@@ -82,7 +91,15 @@ fun AdvisorScreen(
                         modifier = Modifier.fillMaxWidth().padding(32.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator()
+                        if (isLoading) {
+                            CircularProgressIndicator()
+                        } else {
+                            Text(
+                                "Aucun conseiller trouvé",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             } else {

@@ -207,8 +207,8 @@ fun CreateDossierScreen(
 
                 val displayAdmins = admins.ifEmpty {
                     listOf(
-                        AdminProfile(1, "Admin 1", "info@misterdil.ca"),
-                        AdminProfile(2, "Admin 2", "divinegismille@gmail.com")
+                        AdminProfile("1", "Admin 1", "info@misterdil.ca"),
+                        AdminProfile("2", "Admin 2", "divinegismille@gmail.com")
                     )
                 }
 

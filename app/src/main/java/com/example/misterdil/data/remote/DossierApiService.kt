@@ -8,7 +8,7 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 
 data class AdminProfile(
-    val id: Int,
+    val id: String,
     val name: String,
     val email: String,
     val avatar_url: String? = null
@@ -38,7 +38,7 @@ interface DossierApiService {
     @GET("admins")
     suspend fun getAdmins(): List<AdminProfile>
 
-    @POST("profile/update")
+    @POST("updateProfile")
     suspend fun updateProfile(@Body request: ProfileUpdateRequest): AdminProfile
 
     companion object {

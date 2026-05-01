@@ -33,8 +33,8 @@ class DossierViewModel(val repository: DossierRepository) : ViewModel() {
     private val _admins = MutableStateFlow<List<AdminProfile>>(emptyList())
     val admins: StateFlow<List<AdminProfile>> = _admins
 
-    private val _selectedAdminId = MutableStateFlow<Int?>(null)
-    val selectedAdminId: StateFlow<Int?> = _selectedAdminId
+    private val _selectedAdminId = MutableStateFlow<String?>(null)
+    val selectedAdminId: StateFlow<String?> = _selectedAdminId
 
     init {
         refresh()
@@ -57,7 +57,7 @@ class DossierViewModel(val repository: DossierRepository) : ViewModel() {
         }
     }
 
-    fun selectAdmin(id: Int) {
+    fun selectAdmin(id: String) {
         _selectedAdminId.value = id
     }
 

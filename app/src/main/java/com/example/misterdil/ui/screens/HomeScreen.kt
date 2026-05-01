@@ -118,8 +118,8 @@ fun HomeScreen(
 @Composable
 fun AdminSelectionSection(
     admins: List<AdminProfile>,
-    selectedAdminId: Int?,
-    onSelectAdmin: (Int) -> Unit
+    selectedAdminId: String?,
+    onSelectAdmin: (String) -> Unit
 ) {
     val adminColors = listOf(Color(0xFF1565C0), Color(0xFF2E7D32))
 
