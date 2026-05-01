@@ -202,6 +202,7 @@ fun MIsterdilApp(
                     if (isAdmin) {
                         AdminProfileScreen(
                             authViewModel = authViewModel,
+                            dossierRepository = dossierViewModel.repository,
                             onLogout = { authViewModel.logout() },
                             modifier = modifier
                         )

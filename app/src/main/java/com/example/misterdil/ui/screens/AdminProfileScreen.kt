@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.misterdil.data.repository.DossierRepository
 import com.example.misterdil.ui.components.*
 import com.example.misterdil.ui.viewmodels.AuthViewModel
 
@@ -27,14 +28,30 @@ import com.example.misterdil.ui.viewmodels.AuthViewModel
 @Composable
 fun AdminProfileScreen(
     authViewModel: AuthViewModel,
+    dossierRepository: DossierRepository,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val userName by authViewModel.userName.collectAsState()
+    val userEmail by authViewModel.userEmail.collectAsState()
+    val photoUri by authViewModel.photoUri.collectAsState()
     var showSessionsDialog by remember { mutableStateOf(false) }
     var showDossierTypesDialog by remember { mutableStateOf(false) }
     var showUserManagement by remember { mutableStateOf(false) }
+    var showEditProfile by remember { mutableStateOf(false) }
     val configuration = LocalConfiguration.current
     val isTablet = configuration.screenWidthDp >= 600
+
+    if (showEditProfile) {
+        ProfileScreen(
+            repository = dossierRepository,
+            currentName = userName ?: "",
+            currentAvatarUrl = photoUri,
+            onBack = { showEditProfile = false },
+            modifier = modifier
+        )
+        return
+    }
 
     Scaffold(
         topBar = {
@@ -70,22 +87,31 @@ fun AdminProfileScreen(
                                         .background(MaterialTheme.colorScheme.primaryContainer),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(
-                                        Icons.Default.SupervisorAccount,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        modifier = Modifier.size(32.dp)
-                                    )
+                                    if (photoUri != null) {
+                                        coil.compose.AsyncImage(
+                                            model = photoUri,
+                                            contentDescription = "Avatar",
+                                            modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                        )
+                                    } else {
+                                        Text(
+                                            (userName ?: "A").first().uppercaseChar().toString(),
+                                            style = MaterialTheme.typography.headlineMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    }
                                 }
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Column {
                                     Text(
-                                        "Admin Principal",
+                                        userName ?: "",
                                         style = MaterialTheme.typography.titleLarge,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
-                                        "admin@misterdil.com",
+                                        userEmail ?: "",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.secondary
                                     )
@@ -94,9 +120,14 @@ fun AdminProfileScreen(
                                 }
                             }
                             Spacer(modifier = Modifier.height(16.dp))
-                            ProfileInfoRow(label = "Rôle", value = "Super Admin")
-                            Spacer(modifier = Modifier.height(8.dp))
-                            ProfileInfoRow(label = "Dernière connexion", value = "Aujourd'hui à 09:15")
+                            OutlinedButton(
+                                onClick = { showEditProfile = true },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Modifier photo et nom")
+                            }
                         }
                     }
                     ProfileSection(title = "Paramètres de sécurité") {
@@ -235,22 +266,31 @@ fun AdminProfileScreen(
                                         .background(MaterialTheme.colorScheme.primaryContainer),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(
-                                        Icons.Default.SupervisorAccount,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        modifier = Modifier.size(32.dp)
-                                    )
+                                    if (photoUri != null) {
+                                        coil.compose.AsyncImage(
+                                            model = photoUri,
+                                            contentDescription = "Avatar",
+                                            modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                        )
+                                    } else {
+                                        Text(
+                                            (userName ?: "A").first().uppercaseChar().toString(),
+                                            style = MaterialTheme.typography.headlineMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    }
                                 }
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Column {
                                     Text(
-                                        "Admin Principal",
+                                        userName ?: "",
                                         style = MaterialTheme.typography.titleLarge,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
-                                        "admin@misterdil.com",
+                                        userEmail ?: "",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.secondary
                                     )
@@ -259,9 +299,14 @@ fun AdminProfileScreen(
                                 }
                             }
                             Spacer(modifier = Modifier.height(16.dp))
-                            ProfileInfoRow(label = "Rôle", value = "Super Admin")
-                            Spacer(modifier = Modifier.height(8.dp))
-                            ProfileInfoRow(label = "Dernière connexion", value = "Aujourd'hui à 09:15")
+                            OutlinedButton(
+                                onClick = { showEditProfile = true },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Modifier photo et nom")
+                            }
                         }
                     }
                 }

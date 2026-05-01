@@ -25,16 +25,12 @@ fun AdminPaymentScreen(
     onNavigateToDossier: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    var invoiceAmount by remember { mutableStateOf("500") }
-    var invoiceDescription by remember { mutableStateOf("Frais de traitement du dossier") }
+    var invoiceAmount by remember { mutableStateOf("") }
+    var invoiceDescription by remember { mutableStateOf("") }
     var showGenerateDialog by remember { mutableStateOf(false) }
     val configuration = LocalConfiguration.current
     val isTablet = configuration.screenWidthDp >= 600
-    val paymentHistory by remember { mutableStateOf(listOf(
-        PaymentHistoryItem("DOS-2024-001", "Permis d'études", "500 €", PaymentStatus.PAID, "15 avril 2024", "TXN-12345678"),
-        PaymentHistoryItem("DOS-2024-002", "Entrée Express", "750 €", PaymentStatus.PENDING, "20 avril 2024", ""),
-        PaymentHistoryItem("DOS-2024-003", "Affaires", "1000 €", PaymentStatus.FAILED, "18 avril 2024", "TXN-87654321")
-    ))}
+    val paymentHistory by remember { mutableStateOf(listOf<PaymentHistoryItem>()) }
 
     Scaffold(
         topBar = {
@@ -67,14 +63,6 @@ fun AdminPaymentScreen(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    AdminDossierPaymentView(
-                        clientName = "Jean Dupont",
-                        dossierType = "Permis d'études",
-                        dossierId = "DOS-2024-001",
-                        dossierStatus = "En cours",
-                        paymentStatus = PaymentStatus.PAID,
-                        onNavigateToDossier = onNavigateToDossier
-                    )
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
@@ -89,7 +77,7 @@ fun AdminPaymentScreen(
                             OutlinedTextField(
                                 value = invoiceAmount,
                                 onValueChange = { invoiceAmount = it },
-                                label = { Text("Montant (€)") },
+                                label = { Text("Montant (CAD)") },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -104,7 +92,8 @@ fun AdminPaymentScreen(
                             Spacer(modifier = Modifier.height(12.dp))
                             Button(
                                 onClick = { showGenerateDialog = true },
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = invoiceAmount.isNotBlank() && invoiceDescription.isNotBlank()
                             ) {
                                 Text("Générer facture")
                             }
@@ -120,8 +109,16 @@ fun AdminPaymentScreen(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
-                    paymentHistory.forEach { item ->
-                        PaymentHistoryItemCard(item = item)
+                    if (paymentHistory.isEmpty()) {
+                        Text(
+                            "Aucun paiement enregistré",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    } else {
+                        paymentHistory.forEach { item ->
+                            PaymentHistoryItemCard(item = item)
+                        }
                     }
                 }
             }
@@ -134,17 +131,6 @@ fun AdminPaymentScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                item {
-                    AdminDossierPaymentView(
-                        clientName = "Jean Dupont",
-                        dossierType = "Permis d'études",
-                        dossierId = "DOS-2024-001",
-                        dossierStatus = "En cours",
-                        paymentStatus = PaymentStatus.PAID,
-                        onNavigateToDossier = onNavigateToDossier
-                    )
-                }
-
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -160,7 +146,7 @@ fun AdminPaymentScreen(
                             OutlinedTextField(
                                 value = invoiceAmount,
                                 onValueChange = { invoiceAmount = it },
-                                label = { Text("Montant (€)") },
+                                label = { Text("Montant (CAD)") },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -175,7 +161,8 @@ fun AdminPaymentScreen(
                             Spacer(modifier = Modifier.height(12.dp))
                             Button(
                                 onClick = { showGenerateDialog = true },
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = invoiceAmount.isNotBlank() && invoiceDescription.isNotBlank()
                             ) {
                                 Text("Générer facture")
                             }
@@ -191,8 +178,18 @@ fun AdminPaymentScreen(
                     )
                 }
 
-                items(paymentHistory) { item ->
-                    PaymentHistoryItemCard(item = item)
+                if (paymentHistory.isEmpty()) {
+                    item {
+                        Text(
+                            "Aucun paiement enregistré",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    items(paymentHistory) { item ->
+                        PaymentHistoryItemCard(item = item)
+                    }
                 }
 
                 item { Spacer(modifier = Modifier.height(80.dp)) }
@@ -324,7 +321,7 @@ fun GenerateInvoiceDialog(
         title = { Text("Générer la facture") },
         text = {
             Column {
-                Text("Montant: $amount €")
+                Text("Montant: $amount CAD")
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("Description: $description")
                 Spacer(modifier = Modifier.height(12.dp))
