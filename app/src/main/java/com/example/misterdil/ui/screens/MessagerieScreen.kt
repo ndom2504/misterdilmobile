@@ -94,7 +94,7 @@ fun MessagerieScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier, on
     }
 }
 
-private fun getFileName(context: android.content.Context, uri: Uri): String {
+fun getFileName(context: android.content.Context, uri: Uri): String {
     var name = "fichier"
     context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
         val idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
