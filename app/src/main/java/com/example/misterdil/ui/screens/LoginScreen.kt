@@ -31,7 +31,7 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
 import com.example.misterdil.ui.viewmodels.AuthUiState
 import com.example.misterdil.ui.viewmodels.AuthViewModel
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.launch
 
@@ -218,13 +218,11 @@ fun LoginScreen(
                 onClick = {
                     coroutineScope.launch {
                         try {
-                            val googleIdOption = GetGoogleIdOption.Builder()
-                                .setFilterByAuthorizedAccounts(false)
-                                .setServerClientId(GOOGLE_WEB_CLIENT_ID)
-                                .setAutoSelectEnabled(false)
+                            val signInOption = GetSignInWithGoogleOption
+                                .Builder(GOOGLE_WEB_CLIENT_ID)
                                 .build()
                             val request = GetCredentialRequest.Builder()
-                                .addCredentialOption(googleIdOption)
+                                .addCredentialOption(signInOption)
                                 .build()
                             val result = credentialManager.getCredential(context, request)
                             val credential = result.credential
@@ -233,7 +231,7 @@ fun LoginScreen(
                                 viewModel.loginWithGoogle(googleCred.idToken)
                             }
                         } catch (e: GetCredentialException) {
-                            Toast.makeText(context, "Google Sign-In: ${e.message}", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "Erreur Google: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                         }
                     }
                 },
