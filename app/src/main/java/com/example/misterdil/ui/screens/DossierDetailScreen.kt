@@ -192,43 +192,43 @@ fun DynamicField(field: FormField, onValueChange: (String) -> Unit, enabled: Boo
 fun getTemplateForType(type: String): List<FormField> {
     return when (type) {
         "Études" -> listOf(
-            FormField("ed_1", "Établissement visé", FieldType.TEXT),
-            FormField("ed_2", "Niveau d'études actuel", FieldType.TEXT),
-            FormField("ed_3", "Date de début souhaitée", FieldType.DATE),
-            FormField("ed_4", "Budget disponible ($)", FieldType.NUMBER)
+            FormField(id = "ed_1", label = "Établissement visé", type = FieldType.TEXT),
+            FormField(id = "ed_2", label = "Niveau d'études actuel", type = FieldType.TEXT),
+            FormField(id = "ed_3", label = "Date de début souhaitée", type = FieldType.DATE),
+            FormField(id = "ed_4", label = "Budget disponible ($)", type = FieldType.NUMBER)
         )
         "Entrée express" -> listOf(
-            FormField("ee_1", "Score CRS estimé", FieldType.NUMBER),
-            FormField("ee_2", "Test de langue (Niveaux)", FieldType.TEXT),
-            FormField("ee_3", "Années d'expérience", FieldType.NUMBER),
-            FormField("ee_4", "Profession (CNP)", FieldType.TEXT)
+            FormField(id = "ee_1", label = "Score CRS estimé", type = FieldType.NUMBER),
+            FormField(id = "ee_2", label = "Test de langue (Niveaux)", type = FieldType.TEXT),
+            FormField(id = "ee_3", label = "Années d'expérience", type = FieldType.NUMBER),
+            FormField(id = "ee_4", label = "Profession (CNP)", type = FieldType.TEXT)
         )
         "Plan d'affaires" -> listOf(
-            FormField("biz_1", "Nom de l'entreprise", FieldType.TEXT),
-            FormField("biz_2", "Secteur d'activité", FieldType.TEXT),
-            FormField("biz_3", "Investissement prévu ($)", FieldType.NUMBER),
-            FormField("biz_4", "Nombre d'emplois créés", FieldType.NUMBER)
+            FormField(id = "biz_1", label = "Nom de l'entreprise", type = FieldType.TEXT),
+            FormField(id = "biz_2", label = "Secteur d'activité", type = FieldType.TEXT),
+            FormField(id = "biz_3", label = "Investissement prévu ($)", type = FieldType.NUMBER),
+            FormField(id = "biz_4", label = "Nombre d'emplois créés", type = FieldType.NUMBER)
         )
         "Regroupement familial" -> listOf(
-            FormField("rf_1", "Nom du répondant", FieldType.TEXT),
-            FormField("rf_2", "Lien de parenté", FieldType.TEXT),
-            FormField("rf_3", "Statut du répondant au Canada", FieldType.TEXT),
-            FormField("rf_4", "Date de naissance du répondant", FieldType.DATE)
+            FormField(id = "rf_1", label = "Nom du répondant", type = FieldType.TEXT),
+            FormField(id = "rf_2", label = "Lien de parenté", type = FieldType.TEXT),
+            FormField(id = "rf_3", label = "Statut du répondant au Canada", type = FieldType.TEXT),
+            FormField(id = "rf_4", label = "Date de naissance du répondant", type = FieldType.DATE)
         )
         "Visa visiteur" -> listOf(
-            FormField("vv_1", "But de la visite", FieldType.TEXT),
-            FormField("vv_2", "Durée prévue du séjour (jours)", FieldType.NUMBER),
-            FormField("vv_3", "Province de destination", FieldType.TEXT),
-            FormField("vv_4", "Fonds disponibles ($)", FieldType.NUMBER)
+            FormField(id = "vv_1", label = "But de la visite", type = FieldType.TEXT),
+            FormField(id = "vv_2", label = "Durée prévue du séjour (jours)", type = FieldType.NUMBER),
+            FormField(id = "vv_3", label = "Province de destination", type = FieldType.TEXT),
+            FormField(id = "vv_4", label = "Fonds disponibles ($)", type = FieldType.NUMBER)
         )
         "Résidence permanente" -> listOf(
-            FormField("rp_1", "Catégorie visée", FieldType.TEXT),
-            FormField("rp_2", "Années de résidence au Canada", FieldType.NUMBER),
-            FormField("rp_3", "Province de résidence", FieldType.TEXT),
-            FormField("rp_4", "Score IELTS/TEF", FieldType.TEXT)
+            FormField(id = "rp_1", label = "Catégorie visée", type = FieldType.TEXT),
+            FormField(id = "rp_2", label = "Années de résidence au Canada", type = FieldType.NUMBER),
+            FormField(id = "rp_3", label = "Province de résidence", type = FieldType.TEXT),
+            FormField(id = "rp_4", label = "Score IELTS/TEF", type = FieldType.TEXT)
         )
         else -> listOf(
-            FormField("gen_1", "Commentaires additionnels", FieldType.TEXT, required = false)
+            FormField(id = "gen_1", label = "Commentaires additionnels", type = FieldType.TEXT, required = false)
         )
     }
 }
