@@ -30,6 +30,7 @@ import com.example.misterdil.ui.viewmodels.ConversationCreateState
 import com.example.misterdil.ui.viewmodels.ChatViewModel
 import com.example.misterdil.ui.viewmodels.CreateDossierState
 import com.example.misterdil.ui.viewmodels.DossierViewModel
+import com.example.misterdil.utils.CRSCalculator
 import kotlinx.coroutines.delay
 
 private val dossierTypes = listOf(
@@ -66,6 +67,20 @@ fun CreateDossierScreen(
     var dossierId by remember { mutableStateOf<String?>(null) }
     var selectedAdmin by remember { mutableStateOf<AdminProfile?>(null) }
     var autosaveTrigger by remember { mutableStateOf(0) }
+    var showAdvisorSelection by remember { mutableStateOf(false) }
+
+    // Calculer le score CRS pour Entrée Express
+    val crsScore = remember(formFields) {
+        if (selectedType == "Entrée Express" && formFields.isNotEmpty()) {
+            val result = CRSCalculator.calculateCRS(formFields.toMap())
+            formFields["crs_score"] = result.totalScore.toString()
+            formFields["eligible_program"] = result.program
+            formFields["eligibility_status"] = CRSCalculator.getEligibilityMessage(result)
+            result.totalScore
+        } else {
+            null
+        }
+    }
 
     // Autosave: sauvegarde progressive avec délai (debouncing)
     LaunchedEffect(autosaveTrigger) {
@@ -104,12 +119,18 @@ fun CreateDossierScreen(
             TopAppBar(
                 title = {
                     Text(
-                        if (dossierCreatedType != null) "Choisir un conseiller" else "Nouveau dossier",
+                        if (showAdvisorSelection) "Choisir un conseiller" else "Nouveau dossier",
                         fontWeight = FontWeight.Bold
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = {
+                        if (showAdvisorSelection) {
+                            showAdvisorSelection = false
+                        } else {
+                            onBack()
+                        }
+                    }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour")
                     }
                 }
@@ -117,8 +138,18 @@ fun CreateDossierScreen(
         },
         modifier = modifier
     ) { padding ->
-
-        if (dossierCreatedType != null) {
+        if (showAdvisorSelection) {
+            // Écran de sélection de conseiller
+            AdvisorScreen(
+                viewModel = viewModel,
+                onBack = { showAdvisorSelection = false },
+                onAdvisorSelected = { admin ->
+                    selectedAdmin = admin
+                    // Créer le dossier et envoyer la notification au conseiller
+                    viewModel.createDossier(type = selectedType, formData = formFields.toMap())
+                }
+            )
+        } else if (dossierCreatedType != null) {
             // ── Phase 2 : Admin selection ──────────────────────────────
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
@@ -262,7 +293,8 @@ fun CreateDossierScreen(
                     Button(
                         onClick = { 
                             if (formSchema != null) {
-                                viewModel.createDossier(type = selectedType, formData = formFields.toMap())
+                                // Naviguer vers la sélection de conseiller
+                                showAdvisorSelection = true
                             }
                         },
                         modifier = Modifier.fillMaxWidth().height(52.dp),
