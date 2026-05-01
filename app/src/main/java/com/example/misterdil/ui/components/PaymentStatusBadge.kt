@@ -1,0 +1,55 @@
+package com.example.misterdil.ui.components
+
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Pending
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+
+enum class PaymentStatus {
+    PENDING,
+    PAID,
+    FAILED,
+    NOT_GENERATED
+}
+
+@Composable
+fun PaymentStatusBadge(
+    status: PaymentStatus,
+    modifier: Modifier = Modifier
+) {
+    val (icon, text, color, bgColor) = when (status) {
+        PaymentStatus.PENDING -> Icons.Default.Pending to "En attente" to MaterialTheme.colorScheme.onTertiaryContainer to MaterialTheme.colorScheme.tertiaryContainer
+        PaymentStatus.PAID -> Icons.Default.CheckCircle to "Payé" to MaterialTheme.colorScheme.onPrimaryContainer to MaterialTheme.colorScheme.primaryContainer
+        PaymentStatus.FAILED -> Icons.Default.Warning to "Échoué" to MaterialTheme.colorScheme.onError to MaterialTheme.colorScheme.errorContainer
+        PaymentStatus.NOT_GENERATED -> Icons.Default.Pending to "Non généré" to MaterialTheme.colorScheme.onSurfaceVariant to MaterialTheme.colorScheme.surfaceVariant
+    }
+
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(20.dp),
+        color = bgColor
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+        ) {
+            Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = color
+            )
+        }
+    }
+}

@@ -176,7 +176,24 @@ fun MIsterdilApp(
                         )
                     }
                 }
-                AppDestinations.PAIEMENT -> PaiementScreen(paymentViewModel, modifier)
+                AppDestinations.PAIEMENT -> {
+                    val isAdmin by authViewModel.isAdmin.collectAsState()
+                    if (isAdmin) {
+                        AdminPaymentScreen(
+                            viewModel = paymentViewModel,
+                            onBack = { currentDestination = AppDestinations.HOME },
+                            onNavigateToDossier = { currentDestination = AppDestinations.DOSSIER },
+                            modifier = modifier
+                        )
+                    } else {
+                        ClientPaymentScreen(
+                            viewModel = paymentViewModel,
+                            onBack = { currentDestination = AppDestinations.HOME },
+                            onNavigateToDossier = { currentDestination = AppDestinations.DOSSIER },
+                            modifier = modifier
+                        )
+                    }
+                }
                 AppDestinations.PROFIL -> ProfilScreen(authViewModel, modifier)
                 AppDestinations.ADMIN -> AdminScreen(authViewModel, chatViewModel, modifier)
             }
