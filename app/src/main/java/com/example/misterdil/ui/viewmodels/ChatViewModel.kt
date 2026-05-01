@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.misterdil.data.models.Conversation
 import com.example.misterdil.data.models.Message
 import com.example.misterdil.data.repository.ChatRepository
+import com.example.misterdil.data.repository.DossierRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
