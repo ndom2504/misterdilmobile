@@ -19,7 +19,7 @@ sealed class CreateDossierState {
     data class Error(val message: String) : CreateDossierState()
 }
 
-class DossierViewModel(private val repository: DossierRepository) : ViewModel() {
+class DossierViewModel(val repository: DossierRepository) : ViewModel() {
 
     val dossiers: StateFlow<List<Dossier>> = repository.allDossiers.stateIn(
         scope = viewModelScope,
