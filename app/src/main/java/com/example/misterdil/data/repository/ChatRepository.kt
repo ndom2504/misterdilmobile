@@ -72,16 +72,7 @@ class ChatRepository(
                 CreateConversationRequest(adminId, adminName, dossierType, dossierId)
             )
             conversationDao.insertConversations(listOf(conversation))
-            val autoText = "📁 Dossier soumis : $dossierType\n\nBonjour, je viens de soumettre mon dossier d'immigration. Merci de me contacter pour les prochaines étapes."
-            val autoMessage = Message(
-                id = System.currentTimeMillis().toString(),
-                conversationId = conversation.id,
-                senderId = "me",
-                text = autoText,
-                timestamp = System.currentTimeMillis(),
-                isFromMe = true
-            )
-            messageDao.insertMessage(autoMessage)
+            // Message auto-généré supprimé - le client envoie maintenant un message de récapitulatif personnalisé
             conversation.id
         }
     }
