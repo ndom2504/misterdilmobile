@@ -88,6 +88,58 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         viewModelScope.launch { repository.savePhotoUri(uri) }
     }
 
+    fun updateProfile(name: String, phone: String, language: String, onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
+        viewModelScope.launch {
+            _uiState.value = AuthUiState.Loading
+            try {
+                repository.updateProfile(name, phone, language)
+                _uiState.value = AuthUiState.Authenticated
+                onSuccess()
+            } catch (e: Exception) {
+                _uiState.value = AuthUiState.Error(e.message ?: "Échec de la mise à jour")
+                onError(e.message ?: "Échec de la mise à jour")
+            }
+        }
+    }
+
+    fun changePassword(currentPassword: String, newPassword: String, onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
+        viewModelScope.launch {
+            _uiState.value = AuthUiState.Loading
+            try {
+                repository.changePassword(currentPassword, newPassword)
+                _uiState.value = AuthUiState.Authenticated
+                onSuccess()
+            } catch (e: Exception) {
+                _uiState.value = AuthUiState.Error(e.message ?: "Échec du changement de mot de passe")
+                onError(e.message ?: "Échec du changement de mot de passe")
+            }
+        }
+    }
+
+    fun updateNotifications(notificationsEnabled: Boolean, paymentNotificationsEnabled: Boolean) {
+        viewModelScope.launch {
+            try {
+                repository.updateNotifications(notificationsEnabled, paymentNotificationsEnabled)
+            } catch (e: Exception) {
+                _uiState.value = AuthUiState.Error(e.message ?: "Échec de la mise à jour des notifications")
+            }
+        }
+    }
+
+    fun deleteAccount(onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
+        viewModelScope.launch {
+            _uiState.value = AuthUiState.Loading
+            try {
+                repository.deleteAccount()
+                _uiState.value = AuthUiState.Unauthenticated
+                onSuccess()
+            } catch (e: Exception) {
+                _uiState.value = AuthUiState.Error(e.message ?: "Échec de la suppression du compte")
+                onError(e.message ?: "Échec de la suppression du compte")
+            }
+        }
+    }
+
     fun resetError() { _uiState.value = AuthUiState.Idle }
 }
 

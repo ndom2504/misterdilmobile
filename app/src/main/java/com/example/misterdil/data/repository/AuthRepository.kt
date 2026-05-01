@@ -4,10 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.example.misterdil.data.remote.AuthApiService
-import com.example.misterdil.data.remote.GoogleAuthRequest
-import com.example.misterdil.data.remote.LoginRequest
-import com.example.misterdil.data.remote.RegisterRequest
+import com.example.misterdil.data.remote.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -50,6 +47,23 @@ class AuthRepository(
 
     suspend fun logout() {
         try { apiService.logout() } catch (e: Exception) { e.printStackTrace() }
+        context.dataStore.edit { it.clear() }
+    }
+
+    suspend fun updateProfile(name: String, phone: String, language: String): ProfileResponse {
+        return apiService.updateProfile(UpdateProfileRequest(name, phone, language))
+    }
+
+    suspend fun changePassword(currentPassword: String, newPassword: String) {
+        apiService.changePassword(ChangePasswordRequest(currentPassword, newPassword))
+    }
+
+    suspend fun updateNotifications(notificationsEnabled: Boolean, paymentNotificationsEnabled: Boolean) {
+        apiService.updateNotifications(UpdateNotificationsRequest(notificationsEnabled, paymentNotificationsEnabled))
+    }
+
+    suspend fun deleteAccount() {
+        apiService.deleteAccount()
         context.dataStore.edit { it.clear() }
     }
 

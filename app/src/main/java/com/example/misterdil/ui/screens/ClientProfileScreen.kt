@@ -28,6 +28,12 @@ fun ClientProfileScreen(
 ) {
     var notificationsEnabled by remember { mutableStateOf(true) }
     var paymentNotificationsEnabled by remember { mutableStateOf(true) }
+    var showEditProfileDialog by remember { mutableStateOf(false) }
+    var showChangePasswordDialog by remember { mutableStateOf(false) }
+    var showDeleteAccountDialog by remember { mutableStateOf(false) }
+    var userName by remember { mutableStateOf("Jean Dupont") }
+    var userPhone by remember { mutableStateOf("+33 6 12 34 56 78") }
+    var userLanguage by remember { mutableStateOf("Français") }
     val configuration = LocalConfiguration.current
     val isTablet = configuration.screenWidthDp >= 600
 
@@ -72,7 +78,7 @@ fun ClientProfileScreen(
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Column {
                                     Text(
-                                        "Jean Dupont",
+                                        userName,
                                         style = MaterialTheme.typography.titleLarge,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -84,12 +90,12 @@ fun ClientProfileScreen(
                                 }
                             }
                             Spacer(modifier = Modifier.height(16.dp))
-                            ProfileInfoRow(label = "Téléphone", value = "+33 6 12 34 56 78")
+                            ProfileInfoRow(label = "Téléphone", value = userPhone)
                             Spacer(modifier = Modifier.height(8.dp))
-                            ProfileInfoRow(label = "Langue", value = "Français")
+                            ProfileInfoRow(label = "Langue", value = userLanguage)
                             Spacer(modifier = Modifier.height(12.dp))
                             OutlinedButton(
-                                onClick = {},
+                                onClick = { showEditProfileDialog = true },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text("Modifier mes informations")
@@ -107,7 +113,7 @@ fun ClientProfileScreen(
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(
-                            onClick = {},
+                            onClick = { showChangePasswordDialog = true },
                             modifier = Modifier.weight(1f)
                         ) {
                             Icon(Icons.Default.Lock, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -130,19 +136,28 @@ fun ClientProfileScreen(
                         PreferenceToggle(
                             label = "Notifications de nouveaux messages",
                             checked = notificationsEnabled,
-                            onCheckedChange = { notificationsEnabled = it }
+                            onCheckedChange = { 
+                                notificationsEnabled = it
+                                authViewModel.updateNotifications(it, paymentNotificationsEnabled)
+                            }
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         PreferenceToggle(
                             label = "Notifications d'actions requises",
                             checked = paymentNotificationsEnabled,
-                            onCheckedChange = { paymentNotificationsEnabled = it }
+                            onCheckedChange = { 
+                                paymentNotificationsEnabled = it
+                                authViewModel.updateNotifications(notificationsEnabled, it)
+                            }
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         PreferenceToggle(
                             label = "Notifications de paiements",
                             checked = paymentNotificationsEnabled,
-                            onCheckedChange = { paymentNotificationsEnabled = it }
+                            onCheckedChange = { 
+                                paymentNotificationsEnabled = it
+                                authViewModel.updateNotifications(notificationsEnabled, it)
+                            }
                         )
                     }
                     ProfileSection(title = "Documents & historique") {
@@ -190,7 +205,7 @@ fun ClientProfileScreen(
                         )
                     }
                     OutlinedButton(
-                        onClick = {},
+                        onClick = { showDeleteAccountDialog = true },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Demander la suppression de compte")
@@ -239,7 +254,7 @@ fun ClientProfileScreen(
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Column {
                                     Text(
-                                        "Jean Dupont",
+                                        userName,
                                         style = MaterialTheme.typography.titleLarge,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -251,12 +266,12 @@ fun ClientProfileScreen(
                                 }
                             }
                             Spacer(modifier = Modifier.height(16.dp))
-                            ProfileInfoRow(label = "Téléphone", value = "+33 6 12 34 56 78")
+                            ProfileInfoRow(label = "Téléphone", value = userPhone)
                             Spacer(modifier = Modifier.height(8.dp))
-                            ProfileInfoRow(label = "Langue", value = "Français")
+                            ProfileInfoRow(label = "Langue", value = userLanguage)
                             Spacer(modifier = Modifier.height(12.dp))
                             OutlinedButton(
-                                onClick = {},
+                                onClick = { showEditProfileDialog = true },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text("Modifier mes informations")
@@ -278,7 +293,7 @@ fun ClientProfileScreen(
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(
-                            onClick = {},
+                            onClick = { showChangePasswordDialog = true },
                             modifier = Modifier.weight(1f)
                         ) {
                             Icon(Icons.Default.Lock, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -300,19 +315,28 @@ fun ClientProfileScreen(
                         PreferenceToggle(
                             label = "Notifications de nouveaux messages",
                             checked = notificationsEnabled,
-                            onCheckedChange = { notificationsEnabled = it }
+                            onCheckedChange = { 
+                                notificationsEnabled = it
+                                authViewModel.updateNotifications(it, paymentNotificationsEnabled)
+                            }
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         PreferenceToggle(
                             label = "Notifications d'actions requises",
                             checked = paymentNotificationsEnabled,
-                            onCheckedChange = { paymentNotificationsEnabled = it }
+                            onCheckedChange = { 
+                                paymentNotificationsEnabled = it
+                                authViewModel.updateNotifications(notificationsEnabled, it)
+                            }
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         PreferenceToggle(
                             label = "Notifications de paiements",
                             checked = paymentNotificationsEnabled,
-                            onCheckedChange = { paymentNotificationsEnabled = it }
+                            onCheckedChange = { 
+                                paymentNotificationsEnabled = it
+                                authViewModel.updateNotifications(notificationsEnabled, it)
+                            }
                         )
                     }
                 }
@@ -372,7 +396,7 @@ fun ClientProfileScreen(
                 // Actions secondaires
                 item {
                     OutlinedButton(
-                        onClick = {},
+                        onClick = { showDeleteAccountDialog = true },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Demander la suppression de compte")
@@ -396,5 +420,62 @@ fun ClientProfileScreen(
                 item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
+    }
+
+    // Dialogs
+    if (showEditProfileDialog) {
+        EditProfileDialog(
+            currentName = userName,
+            currentEmail = "client@example.com",
+            currentPhone = userPhone,
+            currentLanguage = userLanguage,
+            onDismiss = { showEditProfileDialog = false },
+            onSave = { name, phone, language ->
+                authViewModel.updateProfile(name, phone, language,
+                    onSuccess = {
+                        userName = name
+                        userPhone = phone
+                        userLanguage = language
+                        showEditProfileDialog = false
+                    },
+                    onError = { error ->
+                        // Show error
+                    }
+                )
+            }
+        )
+    }
+
+    if (showChangePasswordDialog) {
+        ChangePasswordDialog(
+            onDismiss = { showChangePasswordDialog = false },
+            onChangePassword = { currentPassword, newPassword ->
+                authViewModel.changePassword(currentPassword, newPassword,
+                    onSuccess = {
+                        showChangePasswordDialog = false
+                    },
+                    onError = { error ->
+                        // Show error in dialog
+                    }
+                )
+            }
+        )
+    }
+
+    if (showDeleteAccountDialog) {
+        DeleteAccountDialog(
+            onDismiss = { showDeleteAccountDialog = false },
+            onDeleteAccount = {
+                authViewModel.deleteAccount(
+                    onSuccess = {
+                        showDeleteAccountDialog = false
+                        onLogout()
+                    },
+                    onError = { error ->
+                        // Show error
+                    }
+                )
+            }
+        )
     }
 }
