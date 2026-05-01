@@ -1,7 +1,9 @@
 package com.example.misterdil.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachFile
@@ -9,10 +11,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 
 enum class MessageSender {
     ADMIN,
@@ -26,6 +31,7 @@ fun MessageBubble(
     sender: MessageSender,
     timestamp: String,
     attachmentName: String? = null,
+    avatarUrl: String? = null,
     modifier: Modifier = Modifier
 ) {
     val backgroundColor = when (sender) {
@@ -46,8 +52,39 @@ fun MessageBubble(
 
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = if (alignment == Alignment.Center) Arrangement.Center else if (alignment == Alignment.Start) Arrangement.Start else Arrangement.End
+        horizontalArrangement = if (alignment == Alignment.Center) Arrangement.Center else if (alignment == Alignment.Start) Arrangement.Start else Arrangement.End,
+        verticalAlignment = Alignment.Top
     ) {
+        // Avatar for admin messages
+        if (sender == MessageSender.ADMIN && avatarUrl != null) {
+            AsyncImage(
+                model = avatarUrl,
+                contentDescription = "Avatar",
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+        } else if (sender == MessageSender.ADMIN) {
+            // Fallback avatar for admin without image
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "A",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+        }
+
         Box(
             modifier = Modifier
                 .widthIn(max = 280.dp)
