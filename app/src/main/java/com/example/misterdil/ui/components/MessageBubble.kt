@@ -28,10 +28,20 @@ fun MessageBubble(
     attachmentName: String? = null,
     modifier: Modifier = Modifier
 ) {
-    val (backgroundColor, textColor, alignment) = when (sender) {
-        MessageSender.ADMIN -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer to Alignment.Start
-        MessageSender.CLIENT -> MaterialTheme.colorScheme.primary to MaterialTheme.colorScheme.onPrimary to Alignment.End
-        MessageSender.SYSTEM -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant to Alignment.Center
+    val backgroundColor = when (sender) {
+        MessageSender.ADMIN -> MaterialTheme.colorScheme.secondaryContainer
+        MessageSender.CLIENT -> MaterialTheme.colorScheme.primary
+        MessageSender.SYSTEM -> MaterialTheme.colorScheme.surfaceVariant
+    }
+    val textColor = when (sender) {
+        MessageSender.ADMIN -> MaterialTheme.colorScheme.onSecondaryContainer
+        MessageSender.CLIENT -> MaterialTheme.colorScheme.onPrimary
+        MessageSender.SYSTEM -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val alignment = when (sender) {
+        MessageSender.ADMIN -> Alignment.Start
+        MessageSender.CLIENT -> Alignment.End
+        MessageSender.SYSTEM -> Alignment.Center
     }
 
     Row(

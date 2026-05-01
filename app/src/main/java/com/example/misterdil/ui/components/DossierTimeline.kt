@@ -45,11 +45,23 @@ fun TimelineStepItem(
     step: TimelineStep,
     isLast: Boolean
 ) {
-    val (icon, iconColor, bgColor) = when (step.status) {
-        TimelineStepStatus.COMPLETED -> Icons.Default.CheckCircle to Color.White to MaterialTheme.colorScheme.primary
-        TimelineStepStatus.IN_PROGRESS -> Icons.Default.Pending to Color.White to MaterialTheme.colorScheme.tertiary
-        TimelineStepStatus.LOCKED -> Icons.Default.Lock to MaterialTheme.colorScheme.secondary to MaterialTheme.colorScheme.surfaceVariant
-        TimelineStepStatus.PENDING -> Icons.Default.Pending to MaterialTheme.colorScheme.secondary to MaterialTheme.colorScheme.secondaryContainer
+    val icon = when (step.status) {
+        TimelineStepStatus.COMPLETED -> Icons.Default.CheckCircle
+        TimelineStepStatus.IN_PROGRESS -> Icons.Default.Pending
+        TimelineStepStatus.LOCKED -> Icons.Default.Lock
+        TimelineStepStatus.PENDING -> Icons.Default.Pending
+    }
+    val iconColor = when (step.status) {
+        TimelineStepStatus.COMPLETED -> Color.White
+        TimelineStepStatus.IN_PROGRESS -> Color.White
+        TimelineStepStatus.LOCKED -> MaterialTheme.colorScheme.secondary
+        TimelineStepStatus.PENDING -> MaterialTheme.colorScheme.secondary
+    }
+    val bgColor = when (step.status) {
+        TimelineStepStatus.COMPLETED -> MaterialTheme.colorScheme.primary
+        TimelineStepStatus.IN_PROGRESS -> MaterialTheme.colorScheme.tertiary
+        TimelineStepStatus.LOCKED -> MaterialTheme.colorScheme.surfaceVariant
+        TimelineStepStatus.PENDING -> MaterialTheme.colorScheme.secondaryContainer
     }
 
     Row(
