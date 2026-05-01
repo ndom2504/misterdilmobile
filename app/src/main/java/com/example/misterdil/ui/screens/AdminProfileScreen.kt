@@ -27,6 +27,9 @@ fun AdminProfileScreen(
     onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showSessionsDialog by remember { mutableStateOf(false) }
+    var showDossierTypesDialog by remember { mutableStateOf(false) }
+    var showUserManagement by remember { mutableStateOf(false) }
     val configuration = LocalConfiguration.current
     val isTablet = configuration.screenWidthDp >= 600
 
@@ -103,7 +106,7 @@ fun AdminProfileScreen(
                         ProfileActionItem(
                             label = "Sessions actives (3)",
                             icon = Icons.Default.Person,
-                            onClick = {}
+                            onClick = { showSessionsDialog = true }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         ProfileActionItem(
@@ -122,7 +125,7 @@ fun AdminProfileScreen(
                         ProfileActionItem(
                             label = "Gestion des types de dossiers",
                             icon = Icons.Default.Settings,
-                            onClick = {}
+                            onClick = { showDossierTypesDialog = true }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         ProfileActionItem(
@@ -152,7 +155,7 @@ fun AdminProfileScreen(
                         ProfileActionItem(
                             label = "Liste des clients",
                             icon = Icons.Default.SupervisorAccount,
-                            onClick = {}
+                            onClick = { showUserManagement = true }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         ProfileActionItem(
@@ -272,7 +275,7 @@ fun AdminProfileScreen(
                         ProfileActionItem(
                             label = "Sessions actives (3)",
                             icon = Icons.Default.Person,
-                            onClick = {}
+                            onClick = { showSessionsDialog = true }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         ProfileActionItem(
@@ -295,7 +298,7 @@ fun AdminProfileScreen(
                         ProfileActionItem(
                             label = "Gestion des types de dossiers",
                             icon = Icons.Default.Settings,
-                            onClick = {}
+                            onClick = { showDossierTypesDialog = true }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         ProfileActionItem(
@@ -324,7 +327,7 @@ fun AdminProfileScreen(
                         ProfileActionItem(
                             label = "Liste des clients",
                             icon = Icons.Default.SupervisorAccount,
-                            onClick = {}
+                            onClick = { showUserManagement = true }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         ProfileActionItem(
@@ -388,5 +391,29 @@ fun AdminProfileScreen(
                 item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
+    }
+
+    if (showSessionsDialog) {
+        ActiveSessionsDialog(
+            onDismiss = { showSessionsDialog = false },
+            onRevokeSession = { sessionId ->
+                // TODO: Implement revoke session via backend
+            }
+        )
+    }
+
+    if (showDossierTypesDialog) {
+        DossierTypesDialog(
+            onDismiss = { showDossierTypesDialog = false },
+            onSave = { types ->
+                // TODO: Implement save dossier types via backend
+            }
+        )
+    }
+
+    if (showUserManagement) {
+        UserManagementScreen(
+            onBack = { showUserManagement = false }
+        )
     }
 }
