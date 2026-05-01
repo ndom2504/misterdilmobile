@@ -12,6 +12,6 @@ interface DossierApiService {
     suspend fun getDossierById(@Path("id") id: String): Dossier
 
     companion object {
-        const val BASE_URL = "https://misterdil-backend.vercel.app/api/v1/" // Remplacer par l'URL Vercel après déploiement
+        const val BASE_URL = "https://backend-chi-olive-77.vercel.app/api/v1/"
     }
 }

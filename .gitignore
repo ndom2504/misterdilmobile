@@ -17,3 +17,6 @@ local.properties
 # Backend
 backend/node_modules/
 backend/.env
+
+# Fichier local de credentials — NE JAMAIS COMMITER
+data.txt
