@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.example.misterdil.data.models.Dossier
 import com.example.misterdil.ui.components.ChecklistItem
 import com.example.misterdil.ui.components.ChecklistStatus
-import com.example.misterdil.ui.components.DossierCard
+import com.example.misterdil.ui.components.MainDossierCard
 import com.example.misterdil.ui.components.StatusBadge
 import com.example.misterdil.ui.viewmodels.AuthViewModel
 import com.example.misterdil.ui.viewmodels.DossierViewModel
