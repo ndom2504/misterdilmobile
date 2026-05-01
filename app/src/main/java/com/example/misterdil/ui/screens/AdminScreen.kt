@@ -390,7 +390,7 @@ private fun AdminClientDetailScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(messages.reversed()) { message ->
+            lazyItems(messages.reversed()) { message ->
                 MessageBubble(message)
             }
         }
