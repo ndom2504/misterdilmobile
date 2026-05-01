@@ -33,6 +33,9 @@ class DossierViewModel(val repository: DossierRepository) : ViewModel() {
     private val _admins = MutableStateFlow<List<AdminProfile>>(emptyList())
     val admins: StateFlow<List<AdminProfile>> = _admins
 
+    private val _adminsLoading = MutableStateFlow(false)
+    val adminsLoading: StateFlow<Boolean> = _adminsLoading
+
     private val _selectedAdminId = MutableStateFlow<String?>(null)
     val selectedAdminId: StateFlow<String?> = _selectedAdminId
 
@@ -49,10 +52,13 @@ class DossierViewModel(val repository: DossierRepository) : ViewModel() {
 
     fun loadAdmins() {
         viewModelScope.launch {
+            _adminsLoading.value = true
             try {
                 _admins.value = repository.getAdmins()
             } catch (e: Exception) {
                 e.printStackTrace()
+            } finally {
+                _adminsLoading.value = false
             }
         }
     }

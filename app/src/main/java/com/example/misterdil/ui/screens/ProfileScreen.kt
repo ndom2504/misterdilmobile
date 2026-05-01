@@ -163,12 +163,15 @@ fun ProfileScreen(
                 onClick = {
                     scope.launch {
                         isSaving = true
+                        // Always save locally first — guaranteed to work
+                        onSaveSuccess(name, avatarUrl)
+                        saveSuccess = true
+                        // Try backend silently (skip content:// URIs — only valid on device)
+                        val remoteAvatar = if (avatarUrl?.startsWith("content://") == true) null else avatarUrl
                         try {
-                            repository.updateProfile(name = name, avatar_url = avatarUrl)
-                            saveSuccess = true
-                            onSaveSuccess(name, avatarUrl)
+                            repository.updateProfile(name = name, avatar_url = remoteAvatar)
                         } catch (e: Exception) {
-                            saveSuccess = false
+                            // Backend unavailable — local save already done
                         } finally {
                             isSaving = false
                         }

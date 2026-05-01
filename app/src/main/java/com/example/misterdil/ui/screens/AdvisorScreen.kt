@@ -16,9 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,16 +37,11 @@ fun AdvisorScreen(
     modifier: Modifier = Modifier
 ) {
     val admins by viewModel.admins.collectAsState()
+    val isLoading by viewModel.adminsLoading.collectAsState()
     val isSelectionMode = onAdvisorSelected != null
-    var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        isLoading = true
         viewModel.loadAdmins()
-    }
-
-    LaunchedEffect(admins) {
-        if (admins.isNotEmpty()) isLoading = false
     }
 
     Scaffold(
