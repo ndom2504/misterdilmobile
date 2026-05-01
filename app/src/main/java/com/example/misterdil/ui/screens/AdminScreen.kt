@@ -256,7 +256,15 @@ private fun AdminClientDetailScreen(
     var showPaymentDialog by remember { mutableStateOf(false) }
     var paymentAmount by remember { mutableStateOf("") }
     var paymentDesc by remember { mutableStateOf("") }
+    var showActionButtons by remember { mutableStateOf(true) }
     val context = LocalContext.current
+
+    // Cacher les boutons d'action après avoir répondu
+    LaunchedEffect(messages.size) {
+        if (messages.any { it.senderId == "admin" && (it.text.contains("accepté", ignoreCase = true) || it.text.contains("rejeté", ignoreCase = true)) }) {
+            showActionButtons = false
+        }
+    }
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -325,6 +333,38 @@ private fun AdminClientDetailScreen(
         bottomBar = {
             Surface(tonalElevation = 2.dp) {
                 Column {
+                    // Accept/Reject buttons (only show if needed)
+                    if (showActionButtons) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = {
+                                    onSendMessage("✅ J'accepte votre demande d'accompagnement. Nous allons commencer l'analyse de votre dossier.")
+                                    showActionButtons = false
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                            ) {
+                                Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("Accepter")
+                            }
+                            Button(
+                                onClick = {
+                                    onSendMessage("❌ Je regrette, je ne peux pas accepter votre demande pour le moment.")
+                                    showActionButtons = false
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336))
+                            ) {
+                                Icon(Icons.Default.Cancel, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("Rejeter")
+                            }
+                        }
+                    }
                     // Action chips row
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
