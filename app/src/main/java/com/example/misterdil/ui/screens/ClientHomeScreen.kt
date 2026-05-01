@@ -45,20 +45,33 @@ fun ClientHomeScreen(
     val activeDossiers = dossiers.filter { it.status != "Complété" }
     val configuration = LocalConfiguration.current
     val isTablet = configuration.screenWidthDp >= 600
+    var showProfile by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Accueil", fontWeight = FontWeight.Bold) },
-                actions = {
-                    IconButton(onClick = { dossierViewModel.refresh() }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Actualiser")
+    if (showProfile) {
+        ProfileScreen(
+            repository = dossierViewModel.repository,
+            currentName = userName ?: "Utilisateur",
+            currentAvatarUrl = null,
+            onBack = { showProfile = false },
+            modifier = modifier
+        )
+    } else {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Accueil", fontWeight = FontWeight.Bold) },
+                    actions = {
+                        IconButton(onClick = { showProfile = true }) {
+                            Icon(Icons.Default.Person, contentDescription = "Profil")
+                        }
+                        IconButton(onClick = { dossierViewModel.refresh() }) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Actualiser")
+                        }
                     }
-                }
-            )
-        },
-        modifier = modifier
-    ) { padding ->
+                )
+            },
+            modifier = modifier
+        ) { padding ->
         if (isTablet) {
             // Tablet layout: 2 columns
             Row(
@@ -375,6 +388,7 @@ fun SecondaryShortcuts(onNavigateTo: (String) -> Unit) {
             onClick = { onNavigateTo("profil") },
             modifier = Modifier.weight(1f)
         )
+    }
     }
 }
 
