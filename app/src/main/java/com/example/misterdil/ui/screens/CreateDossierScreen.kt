@@ -61,11 +61,13 @@ fun CreateDossierScreen(
     val admins by viewModel.admins.collectAsState()
 
     var dossierCreatedType by remember { mutableStateOf<String?>(null) }
+    var dossierId by remember { mutableStateOf<String?>(null) }
     var selectedAdmin by remember { mutableStateOf<AdminProfile?>(null) }
 
     LaunchedEffect(createState) {
         if (createState is CreateDossierState.Success) {
             dossierCreatedType = selectedType
+            dossierId = (createState as CreateDossierState.Success).dossierId
             viewModel.resetCreateState()
         }
     }
@@ -179,7 +181,8 @@ fun CreateDossierScreen(
                             chatViewModel.createConversationForDossier(
                                 adminId = admin.id.toString(),
                                 adminName = admin.name,
-                                dossierType = dossierCreatedType!!
+                                dossierType = dossierCreatedType!!,
+                                dossierId = dossierId
                             )
                         },
                         modifier = Modifier.fillMaxWidth().height(52.dp),

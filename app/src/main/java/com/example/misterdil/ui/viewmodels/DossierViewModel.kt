@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 sealed class CreateDossierState {
     object Idle : CreateDossierState()
     object Loading : CreateDossierState()
-    object Success : CreateDossierState()
+    data class Success(val dossierId: String) : CreateDossierState()
     data class Error(val message: String) : CreateDossierState()
 }
 
@@ -65,8 +65,8 @@ class DossierViewModel(private val repository: DossierRepository) : ViewModel() 
         viewModelScope.launch {
             _createState.value = CreateDossierState.Loading
             try {
-                repository.createDossier(type, formData)
-                _createState.value = CreateDossierState.Success
+                val dossier = repository.createDossier(type, formData)
+                _createState.value = CreateDossierState.Success(dossier.id)
             } catch (e: Exception) {
                 _createState.value = CreateDossierState.Error(e.message ?: "Erreur lors de la création")
             }

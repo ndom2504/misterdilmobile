@@ -64,11 +64,12 @@ class ChatRepository(
     suspend fun createConversationForDossier(
         adminId: String,
         adminName: String,
-        dossierType: String
+        dossierType: String,
+        dossierId: String? = null
     ): String {
         return withContext(Dispatchers.IO) {
             val conversation = apiService.createConversation(
-                CreateConversationRequest(adminId, adminName, dossierType)
+                CreateConversationRequest(adminId, adminName, dossierType, dossierId)
             )
             conversationDao.insertConversations(listOf(conversation))
             val autoText = "📁 Dossier soumis : $dossierType\n\nBonjour, je viens de soumettre mon dossier d'immigration. Merci de me contacter pour les prochaines étapes."

@@ -14,7 +14,9 @@ data class CreateConversationRequest(
     @SerializedName("admin_name")
     val adminName: String,
     @SerializedName("project_name")
-    val projectName: String
+    val projectName: String,
+    @SerializedName("dossier_id")
+    val dossierId: String? = null
 )
 
 interface ChatApiService {

@@ -24,9 +24,11 @@ fun DossierDetailScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isEditable = dossier.status.lowercase() != "soumis"
+
     // Dans une vraie app, ces champs viendraient d'une API ou d'une DB
-    val formFields = remember { mutableStateListOf<FormField>().apply { 
-        addAll(getTemplateForType(dossier.type)) 
+    val formFields = remember { mutableStateListOf<FormField>().apply {
+        addAll(getTemplateForType(dossier.type))
     } }
 
     Scaffold(
@@ -39,8 +41,10 @@ fun DossierDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* Sauvegarder les modifications */ }) {
-                        Icon(Icons.Default.Save, contentDescription = "Enregistrer")
+                    if (isEditable) {
+                        IconButton(onClick = { /* Sauvegarder les modifications */ }) {
+                            Icon(Icons.Default.Save, contentDescription = "Enregistrer")
+                        }
                     }
                 }
             )
@@ -65,26 +69,58 @@ fun DossierDetailScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary
                 )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Badge(
+                        containerColor = when (dossier.status.lowercase()) {
+                            "soumis" -> MaterialTheme.colorScheme.tertiary
+                            "en attente" -> MaterialTheme.colorScheme.secondary
+                            "en cours" -> MaterialTheme.colorScheme.primary
+                            else -> MaterialTheme.colorScheme.outline
+                        }
+                    ) {
+                        Text(dossier.status, style = MaterialTheme.typography.labelSmall)
+                    }
+                    if (!isEditable) {
+                        Spacer(Modifier.width(8.dp))
+                        Text("Dossier verrouillé", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+                    }
+                }
                 HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             }
 
             items(formFields) { field ->
                 DynamicField(field = field, onValueChange = { newValue ->
-                    // Mise à jour de la valeur dans la liste
-                    val index = formFields.indexOf(field)
-                    if (index != -1) {
-                        formFields[index] = field.copy(value = newValue)
+                    if (isEditable) {
+                        val index = formFields.indexOf(field)
+                        if (index != -1) {
+                            formFields[index] = field.copy(value = newValue)
+                        }
                     }
-                })
+                }, enabled = isEditable)
             }
 
-            item {
-                Spacer(modifier = Modifier.height(32.dp))
-                Button(
-                    onClick = { /* Action finale */ },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Soumettre le dossier")
+            if (isEditable) {
+                item {
+                    Spacer(modifier = Modifier.height(32.dp))
+                    Button(
+                        onClick = { /* Action finale */ },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Soumettre le dossier")
+                    }
+                }
+            } else {
+                item {
+                    Spacer(modifier = Modifier.height(32.dp))
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("Dossier soumis", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+                            Text("Votre dossier est en cours de traitement par le conseiller. Contactez-le via la messagerie pour toute question.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                        }
+                    }
                 }
             }
         }
@@ -92,21 +128,22 @@ fun DossierDetailScreen(
 }
 
 @Composable
-fun DynamicField(field: FormField, onValueChange: (String) -> Unit) {
+fun DynamicField(field: FormField, onValueChange: (String) -> Unit, enabled: Boolean = true) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = field.label + if (field.required) " *" else "",
             style = MaterialTheme.typography.labelLarge,
             modifier = Modifier.padding(bottom = 8.dp)
         )
-        
+
         when (field.type) {
             FieldType.TEXT -> {
                 OutlinedTextField(
                     value = field.value,
                     onValueChange = onValueChange,
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Saisir ici...") }
+                    placeholder = { Text("Saisir ici...") },
+                    enabled = enabled
                 )
             }
             FieldType.NUMBER -> {
@@ -115,25 +152,26 @@ fun DynamicField(field: FormField, onValueChange: (String) -> Unit) {
                     onValueChange = onValueChange,
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    placeholder = { Text("0") }
+                    placeholder = { Text("0") },
+                    enabled = enabled
                 )
             }
             FieldType.DATE -> {
-                // Simplifié : un champ texte pour l'exemple
                 OutlinedTextField(
                     value = field.value,
                     onValueChange = onValueChange,
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("JJ/MM/AAAA") }
+                    placeholder = { Text("JJ/MM/AAAA") },
+                    enabled = enabled
                 )
             }
             FieldType.DROPDOWN -> {
-                // Un sélecteur simple ou un champ texte pour l'exemple
                 OutlinedTextField(
                     value = field.value,
                     onValueChange = onValueChange,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Sélectionner une option") }
+                    label = { Text("Sélectionner une option") },
+                    enabled = enabled
                 )
             }
         }

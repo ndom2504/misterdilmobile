@@ -53,6 +53,8 @@ CREATE TABLE messages (
 
 -- Migration admin_id (exécuter dans Neon SQL Editor si la table existe déjà)
 -- ALTER TABLE conversations ADD COLUMN IF NOT EXISTS admin_id UUID REFERENCES users(id);
+-- Migration dossier_id (exécuter dans Neon SQL Editor si la table existe déjà)
+-- ALTER TABLE conversations ADD COLUMN IF NOT EXISTS dossier_id UUID REFERENCES dossiers(id);
 
 -- Indexes
 CREATE INDEX idx_dossiers_user       ON dossiers(user_id);

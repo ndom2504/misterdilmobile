@@ -76,11 +76,11 @@ class ChatViewModel(private val repository: ChatRepository) : ViewModel() {
         }
     }
 
-    fun createConversationForDossier(adminId: String, adminName: String, dossierType: String) {
+    fun createConversationForDossier(adminId: String, adminName: String, dossierType: String, dossierId: String? = null) {
         viewModelScope.launch {
             _convCreateState.value = ConversationCreateState.Loading
             try {
-                val convId = repository.createConversationForDossier(adminId, adminName, dossierType)
+                val convId = repository.createConversationForDossier(adminId, adminName, dossierType, dossierId)
                 _convCreateState.value = ConversationCreateState.Success(convId)
                 refreshConversations()
             } catch (e: Exception) {

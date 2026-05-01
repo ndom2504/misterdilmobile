@@ -22,13 +22,13 @@ module.exports = withAuth(async (req, res) => {
   }
 
   if (req.method === 'POST') {
-    const { admin_id, admin_name, project_name } = req.body || {};
+    const { admin_id, admin_name, project_name, dossier_id } = req.body || {};
     if (!admin_id || !project_name) {
       return res.status(400).json({ error: 'admin_id et project_name requis' });
     }
     try {
       const result = await sql`
-        INSERT INTO conversations (client_name, project_name, last_message, time, unread_count, user_id, admin_id)
+        INSERT INTO conversations (client_name, project_name, last_message, time, unread_count, user_id, admin_id, dossier_id)
         VALUES (
           ${admin_name ?? 'Conseiller'},
           ${project_name},
@@ -36,7 +36,8 @@ module.exports = withAuth(async (req, res) => {
           to_char(NOW(), 'HH24:MI'),
           1,
           ${req.user.userId},
-          ${admin_id}
+          ${admin_id},
+          ${dossier_id || null}
         )
         RETURNING id, client_name, project_name, last_message, time, unread_count
       `;
@@ -54,6 +55,14 @@ module.exports = withAuth(async (req, res) => {
           true
         )
       `;
+
+      // Update dossier status to 'Soumis' if dossier_id provided
+      if (dossier_id) {
+        await sql`
+          UPDATE dossiers SET status = 'Soumis', progress = 20.0, last_update = to_char(NOW(), 'DD/MM/YYYY')
+          WHERE id = ${dossier_id}
+        `;
+      }
 
       return res.status(201).json(result[0]);
     } catch (err) {

@@ -79,6 +79,23 @@ private fun AdminDashboard(
     modifier: Modifier,
     onSelectClient: (String) -> Unit
 ) {
+    var statusFilter by remember { mutableStateOf("Tous") }
+    var typeFilter by remember { mutableStateOf("Tous") }
+    val statusOptions = listOf("Tous", "En attente", "Soumis", "En cours", "Complété")
+    val typeOptions = listOf("Tous") + conversations.map { it.projectName }.distinct()
+
+    val filteredConversations = conversations.filter { conv ->
+        val statusMatch = statusFilter == "Tous" || when (statusFilter) {
+            "En attente" -> conv.lastMessage == "Dossier soumis"
+            "Soumis" -> conv.lastMessage == "Dossier soumis"
+            "En cours" -> conv.lastMessage != "Dossier soumis" && conv.unreadCount > 0
+            "Complété" -> conv.lastMessage.contains("Complété", ignoreCase = true)
+            else -> true
+        }
+        val typeMatch = typeFilter == "Tous" || conv.projectName == typeFilter
+        statusMatch && typeMatch
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Espace Conseiller", fontWeight = FontWeight.Bold) })
@@ -122,25 +139,57 @@ private fun AdminDashboard(
             }
 
             item {
+                // Status filter
+                Column {
+                    Text("Filtrer par statut", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(statusOptions) { status ->
+                            FilterChip(
+                                selected = statusFilter == status,
+                                onClick = { statusFilter = status },
+                                label = { Text(status) }
+                            )
+                        }
+                    }
+                }
+            }
+
+            item {
+                // Type filter
+                Column {
+                    Text("Filtrer par type", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(typeOptions) { type ->
+                            FilterChip(
+                                selected = typeFilter == type,
+                                onClick = { typeFilter = type },
+                                label = { Text(type) }
+                            )
+                        }
+                    }
+                }
+            }
+
+            item {
                 Text(
-                    "Mes clients",
+                    "Mes clients (${filteredConversations.size})",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
             }
 
-            if (conversations.isEmpty()) {
+            if (filteredConversations.isEmpty()) {
                 item {
                     Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(Icons.Default.Group, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.secondary)
                             Spacer(Modifier.height(8.dp))
-                            Text("Aucun client assigné pour l'instant.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary)
+                            Text("Aucun client ne correspond aux filtres.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary)
                         }
                     }
                 }
             } else {
-                items(conversations) { conv ->
+                items(filteredConversations) { conv ->
                     ClientCard(conv = conv, onClick = { onSelectClient(conv.id) })
                 }
             }
