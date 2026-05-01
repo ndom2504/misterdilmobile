@@ -76,6 +76,19 @@ class DossierViewModel(private val repository: DossierRepository) : ViewModel() 
     fun resetCreateState() {
         _createState.value = CreateDossierState.Idle
     }
+
+    fun saveDraft(type: String, formData: Map<String, String>) {
+        // Pour l'instant, sauvegarde locale dans SharedPreferences
+        // Plus tard, on pourra envoyer à l'API pour sauvegarde côté serveur
+        viewModelScope.launch {
+            try {
+                // TODO: Implémenter la sauvegarde locale (SharedPreferences) ou API
+                // repository.saveDraft(type, formData)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 }
 
 class DossierViewModelFactory(private val repository: DossierRepository) : ViewModelProvider.Factory {

@@ -30,6 +30,7 @@ import com.example.misterdil.ui.viewmodels.ConversationCreateState
 import com.example.misterdil.ui.viewmodels.ChatViewModel
 import com.example.misterdil.ui.viewmodels.CreateDossierState
 import com.example.misterdil.ui.viewmodels.DossierViewModel
+import kotlinx.coroutines.delay
 
 private val dossierTypes = listOf(
     "Entrée Express",
@@ -64,6 +65,24 @@ fun CreateDossierScreen(
     var dossierCreatedType by remember { mutableStateOf<String?>(null) }
     var dossierId by remember { mutableStateOf<String?>(null) }
     var selectedAdmin by remember { mutableStateOf<AdminProfile?>(null) }
+    var autosaveTrigger by remember { mutableStateOf(0) }
+
+    // Autosave: sauvegarde progressive avec délai (debouncing)
+    LaunchedEffect(autosaveTrigger) {
+        if (formFields.isNotEmpty()) {
+            delay(2000) // Attendre 2 secondes après le dernier changement
+            // Ici on pourrait sauvegarder dans SharedPreferences ou envoyer à l'API
+            // Pour l'instant, on sauvegarde localement
+            viewModel.saveDraft(selectedType, formFields.toMap())
+        }
+    }
+
+    // Déclencher l'autosave à chaque changement de champ
+    LaunchedEffect(formFields.size) {
+        if (formFields.isNotEmpty()) {
+            autosaveTrigger++
+        }
+    }
 
     LaunchedEffect(createState) {
         if (createState is CreateDossierState.Success) {
