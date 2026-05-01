@@ -100,6 +100,37 @@ object FormSchemas {
                 )
             ),
             FormField(
+                id = "country_of_residence",
+                label = "Pays de résidence",
+                type = FieldType.DROPDOWN,
+                required = true,
+                options = listOf(
+                    "Afghanistan", "Afrique du Sud", "Albanie", "Algérie", "Allemagne", "Andorre", "Angola", "Antigua-et-Barbuda", "Arabie saoudite", "Argentine", "Arménie", "Australie", "Autriche", "Azerbaïdjan",
+                    "Bahamas", "Bahreïn", "Bangladesh", "Barbade", "Belgique", "Belize", "Bénin", "Bhoutan", "Biélorussie", "Bolivie", "Bosnie-Herzégovine", "Botswana", "Brésil", "Brunei", "Bulgarie", "Burkina Faso", "Burundi",
+                    "Cambodge", "Cameroun", "Canada", "Cap-Vert", "Chili", "Chine", "Chypre", "Colombie", "Comores", "Congo", "Corée du Nord", "Corée du Sud", "Costa Rica", "Côte d'Ivoire", "Croatie", "Cuba",
+                    "Danemark", "Djibouti", "Dominique",
+                    "Égypte", "Émirats arabes unis", "Équateur", "Érythrée", "Espagne", "Estonie", "États-Unis", "Éthiopie",
+                    "Fidji", "Finlande", "France",
+                    "Gabon", "Gambie", "Géorgie", "Ghana", "Grèce", "Grenade", "Guatemala", "Guinée", "Guinée équatoriale", "Guinée-Bissau", "Guyane",
+                    "Haïti", "Honduras", "Hongrie",
+                    "Inde", "Indonésie", "Irak", "Iran", "Irlande", "Islande", "Israël", "Italie",
+                    "Jamaïque", "Japon", "Jordanie",
+                    "Kazakhstan", "Kenya", "Kiribati", "Koweït", "Kyrgyzstan",
+                    "Laos", "Lesotho", "Lettonie", "Liban", "Liberia", "Libye", "Liechtenstein", "Lituanie", "Luxembourg",
+                    "Macédoine", "Madagascar", "Malaisie", "Malawi", "Maldives", "Mali", "Malte", "Maroc", "Maurice", "Mauritanie", "Mexique", "Micronésie", "Moldavie", "Monaco", "Mongolie", "Monténégro", "Mozambique", "Myanmar",
+                    "Namibie", "Nauru", "Népal", "Nicaragua", "Niger", "Nigeria", "Norvège", "Nouvelle-Zélande",
+                    "Oman", "Ouganda", "Ouzbékistan",
+                    "Pakistan", "Panama", "Papouasie-Nouvelle-Guinée", "Paraguay", "Pays-Bas", "Pérou", "Philippines", "Pologne", "Portugal", "Qatar",
+                    "République centrafricaine", "République démocratique du Congo", "République dominicaine", "Roumanie", "Royaume-Uni", "Russie", "Rwanda",
+                    "Saint-Christophe-et-Niévès", "Sainte-Lucie", "Saint-Marin", "Saint-Vincent-et-les-Grenadines", "Salomon", "Salvador", "Samoa", "Sao Tomé-et-Principe", "Sénégal", "Serbie", "Seychelles", "Sierra Leone", "Singapour", "Slovaquie", "Slovénie", "Somalie", "Soudan", "Sri Lanka", "Suède", "Suisse", "Suriname", "Swaziland", "Syrie",
+                    "Tadjikistan", "Tanzanie", "Tchad", "Thaïlande", "Togo", "Tonga", "Trinité-et-Tobago", "Tunisie", "Turkménistan", "Turquie", "Tuvalu",
+                    "Ukraine", "Uruguay",
+                    "Vanuatu", "Vatican", "Venezuela", "Vietnam",
+                    "Yémen",
+                    "Zambie", "Zimbabwe"
+                )
+            ),
+            FormField(
                 id = "marital_status",
                 label = "État civil",
                 type = FieldType.DROPDOWN,
