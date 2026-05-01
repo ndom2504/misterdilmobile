@@ -51,6 +51,9 @@ CREATE TABLE messages (
   created_at      TIMESTAMP DEFAULT NOW()
 );
 
+-- Migration admin_id (exécuter dans Neon SQL Editor si la table existe déjà)
+-- ALTER TABLE conversations ADD COLUMN IF NOT EXISTS admin_id UUID REFERENCES users(id);
+
 -- Indexes
 CREATE INDEX idx_dossiers_user       ON dossiers(user_id);
 CREATE INDEX idx_conversations_user  ON conversations(user_id);

@@ -2,18 +2,63 @@ const { sql } = require('../../../lib/db');
 const { withAuth } = require('../../../lib/middleware');
 
 module.exports = withAuth(async (req, res) => {
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
-
-  try {
-    const conversations = await sql`
-      SELECT id, client_name, project_name, last_message, time, unread_count
-      FROM conversations
-      WHERE user_id = ${req.user.userId}
-      ORDER BY created_at DESC
-    `;
-    return res.status(200).json(conversations);
-  } catch (err) {
-    console.error('Get conversations error:', err);
-    return res.status(500).json({ error: 'Erreur serveur' });
+  if (req.method === 'GET') {
+    try {
+      const isAdmin = req.user.role === 'admin';
+      const conversations = isAdmin
+        ? await sql`
+            SELECT id, client_name, project_name, last_message, time, unread_count
+            FROM conversations WHERE admin_id = ${req.user.userId} ORDER BY created_at DESC`
+        : await sql`
+            SELECT id, client_name, project_name, last_message, time, unread_count
+            FROM conversations WHERE user_id = ${req.user.userId} ORDER BY created_at DESC`;
+      return res.status(200).json(conversations);
+    } catch (err) {
+      console.error('Get conversations error:', err);
+      return res.status(500).json({ error: 'Erreur serveur' });
+    }
   }
+
+  if (req.method === 'POST') {
+    const { admin_id, admin_name, project_name } = req.body || {};
+    if (!admin_id || !project_name) {
+      return res.status(400).json({ error: 'admin_id et project_name requis' });
+    }
+    try {
+      const result = await sql`
+        INSERT INTO conversations (client_name, project_name, last_message, time, unread_count, user_id, admin_id)
+        VALUES (
+          ${admin_name ?? 'Conseiller'},
+          ${project_name},
+          'Dossier soumis',
+          to_char(NOW(), 'HH24:MI'),
+          1,
+          ${req.user.userId},
+          ${admin_id}
+        )
+        RETURNING id, client_name, project_name, last_message, time, unread_count
+      `;
+
+      // Send automatic message from the client
+      const autoText = '📁 Dossier soumis : ' + project_name + '\n\nBonjour, je viens de soumettre mon dossier d\'immigration. Merci de me contacter pour les prochaines étapes.';
+      await sql`
+        INSERT INTO messages (id, conversation_id, sender_id, text, timestamp, is_from_me)
+        VALUES (
+          ${Date.now().toString()},
+          ${result[0].id},
+          ${req.user.userId},
+          ${autoText},
+          ${Date.now()},
+          true
+        )
+      `;
+
+      return res.status(201).json(result[0]);
+    } catch (err) {
+      console.error('Create conversation error:', err);
+      return res.status(500).json({ error: 'Erreur serveur' });
+    }
+  }
+
+  return res.status(405).json({ error: 'Method not allowed' });
 });

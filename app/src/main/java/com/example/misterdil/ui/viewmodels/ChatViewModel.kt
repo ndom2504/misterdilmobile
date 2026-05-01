@@ -14,8 +14,18 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+sealed class ConversationCreateState {
+    object Idle : ConversationCreateState()
+    object Loading : ConversationCreateState()
+    data class Success(val conversationId: String) : ConversationCreateState()
+    data class Error(val message: String) : ConversationCreateState()
+}
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChatViewModel(private val repository: ChatRepository) : ViewModel() {
+
+    private val _convCreateState = MutableStateFlow<ConversationCreateState>(ConversationCreateState.Idle)
+    val convCreateState: StateFlow<ConversationCreateState> = _convCreateState
 
     private val _currentConversationId = MutableStateFlow<String?>(null)
     
@@ -61,10 +71,26 @@ class ChatViewModel(private val repository: ChatRepository) : ViewModel() {
     fun sendMessage(text: String) {
         val id = _currentConversationId.value ?: return
         if (text.isBlank()) return
-        
         viewModelScope.launch {
             repository.sendMessage(id, text)
         }
+    }
+
+    fun createConversationForDossier(adminId: String, adminName: String, dossierType: String) {
+        viewModelScope.launch {
+            _convCreateState.value = ConversationCreateState.Loading
+            try {
+                val convId = repository.createConversationForDossier(adminId, adminName, dossierType)
+                _convCreateState.value = ConversationCreateState.Success(convId)
+                refreshConversations()
+            } catch (e: Exception) {
+                _convCreateState.value = ConversationCreateState.Error(e.message ?: "Erreur")
+            }
+        }
+    }
+
+    fun resetConvCreateState() {
+        _convCreateState.value = ConversationCreateState.Idle
     }
 }
 

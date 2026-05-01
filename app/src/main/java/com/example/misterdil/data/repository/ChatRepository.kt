@@ -5,6 +5,7 @@ import com.example.misterdil.data.local.MessageDao
 import com.example.misterdil.data.models.Conversation
 import com.example.misterdil.data.models.Message
 import com.example.misterdil.data.remote.ChatApiService
+import com.example.misterdil.data.remote.CreateConversationRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -57,6 +58,30 @@ class ChatRepository(
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+    }
+
+    suspend fun createConversationForDossier(
+        adminId: String,
+        adminName: String,
+        dossierType: String
+    ): String {
+        return withContext(Dispatchers.IO) {
+            val conversation = apiService.createConversation(
+                CreateConversationRequest(adminId, adminName, dossierType)
+            )
+            conversationDao.insertConversations(listOf(conversation))
+            val autoText = "📁 Dossier soumis : $dossierType\n\nBonjour, je viens de soumettre mon dossier d'immigration. Merci de me contacter pour les prochaines étapes."
+            val autoMessage = Message(
+                id = System.currentTimeMillis().toString(),
+                conversationId = conversation.id,
+                senderId = "me",
+                text = autoText,
+                timestamp = System.currentTimeMillis(),
+                isFromMe = true
+            )
+            messageDao.insertMessage(autoMessage)
+            conversation.id
         }
     }
 }

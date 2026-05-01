@@ -1,5 +1,9 @@
 package com.example.misterdil.ui.screens
 
+import android.net.Uri
+import android.provider.OpenableColumns
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,6 +14,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -18,9 +24,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.misterdil.data.models.Conversation
 import com.example.misterdil.data.models.Message
 import com.example.misterdil.ui.viewmodels.ChatViewModel
@@ -85,6 +93,17 @@ fun MessagerieScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
     }
 }
 
+private fun getFileName(context: android.content.Context, uri: Uri): String {
+    var name = "fichier"
+    context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+        val idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+        if (cursor.moveToFirst() && idx != -1) name = cursor.getString(idx)
+    }
+    return name
+}
+
+const val FILE_MSG_PREFIX = "__FILE__:"
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatDetailScreen(
@@ -95,6 +114,16 @@ fun ChatDetailScreen(
     modifier: Modifier = Modifier
 ) {
     var textState by remember { mutableStateOf("") }
+    val context = LocalContext.current
+
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        uri?.let {
+            val fileName = getFileName(context, it)
+            onSendMessage("$FILE_MSG_PREFIX$fileName")
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -116,6 +145,9 @@ fun ChatDetailScreen(
                         .imePadding(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    IconButton(onClick = { filePickerLauncher.launch(arrayOf("*/*")) }) {
+                        Icon(Icons.Default.AttachFile, contentDescription = "Joindre", tint = MaterialTheme.colorScheme.secondary)
+                    }
                     TextField(
                         value = textState,
                         onValueChange = { textState = it },
@@ -165,6 +197,12 @@ fun ChatDetailScreen(
 
 @Composable
 fun MessageBubble(message: Message) {
+    if (message.text.startsWith(FILE_MSG_PREFIX)) {
+        val fileName = message.text.removePrefix(FILE_MSG_PREFIX)
+        FileMessageBubble(fileName = fileName, isFromMe = message.isFromMe)
+        return
+    }
+
     val alignment = if (message.isFromMe) Alignment.End else Alignment.Start
     val containerColor = if (message.isFromMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
     val contentColor = if (message.isFromMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
@@ -185,6 +223,34 @@ fun MessageBubble(message: Message) {
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                 style = MaterialTheme.typography.bodyLarge
             )
+        }
+    }
+}
+
+@Composable
+fun FileMessageBubble(fileName: String, isFromMe: Boolean) {
+    val alignment = if (isFromMe) Alignment.End else Alignment.Start
+    val bgColor = if (isFromMe) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer
+    val contentColor = if (isFromMe) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSecondaryContainer
+
+    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = alignment) {
+        Surface(
+            color = bgColor,
+            contentColor = contentColor,
+            shape = RoundedCornerShape(12.dp),
+            tonalElevation = 2.dp
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Default.InsertDriveFile, contentDescription = null, modifier = Modifier.size(28.dp))
+                Spacer(Modifier.width(8.dp))
+                Column {
+                    Text(fileName, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text("Fichier joint", fontSize = 11.sp, color = contentColor.copy(alpha = 0.7f))
+                }
+            }
         }
     }
 }

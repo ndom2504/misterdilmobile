@@ -15,11 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.misterdil.data.models.Dossier
+import com.example.misterdil.ui.viewmodels.ChatViewModel
 import com.example.misterdil.ui.viewmodels.DossierViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DossierScreen(viewModel: DossierViewModel, modifier: Modifier = Modifier) {
+fun DossierScreen(viewModel: DossierViewModel, chatViewModel: ChatViewModel, modifier: Modifier = Modifier) {
     var selectedFilter by remember { mutableStateOf("Tous") }
     val filters = listOf("Tous", "Entrée Express", "Permis d'études", "Plan d'affaires", "Regroupement familial", "Visa visiteur", "Résidence permanente")
     val dossiers by viewModel.dossiers.collectAsState()
@@ -30,6 +31,7 @@ fun DossierScreen(viewModel: DossierViewModel, modifier: Modifier = Modifier) {
     if (showCreate) {
         CreateDossierScreen(
             viewModel = viewModel,
+            chatViewModel = chatViewModel,
             onBack = { showCreate = false },
             modifier = modifier
         )

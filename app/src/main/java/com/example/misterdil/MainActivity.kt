@@ -118,7 +118,7 @@ fun MIsterdilApp(
                         else         -> AppDestinations.HOME
                     }
                 })
-                AppDestinations.DOSSIER -> DossierScreen(dossierViewModel, modifier)
+                AppDestinations.DOSSIER -> DossierScreen(dossierViewModel, chatViewModel, modifier)
                 AppDestinations.MESSAGERIE -> MessagerieScreen(chatViewModel, modifier)
                 AppDestinations.PAIEMENT -> PaiementScreen(paymentViewModel, modifier)
                 AppDestinations.PROFIL -> ProfilScreen(authViewModel, modifier)
