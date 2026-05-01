@@ -194,7 +194,22 @@ fun MIsterdilApp(
                         )
                     }
                 }
-                AppDestinations.PROFIL -> ProfilScreen(authViewModel, modifier)
+                AppDestinations.PROFIL -> {
+                    val isAdmin by authViewModel.isAdmin.collectAsState()
+                    if (isAdmin) {
+                        AdminProfileScreen(
+                            authViewModel = authViewModel,
+                            onLogout = { authViewModel.logout() },
+                            modifier = modifier
+                        )
+                    } else {
+                        ClientProfileScreen(
+                            authViewModel = authViewModel,
+                            onLogout = { authViewModel.logout() },
+                            modifier = modifier
+                        )
+                    }
+                }
                 AppDestinations.ADMIN -> AdminScreen(authViewModel, chatViewModel, modifier)
             }
         }
