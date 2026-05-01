@@ -46,7 +46,10 @@ fun AdminMessagingScreen(
             ) {
                 AdminInboxScreen(
                     conversations = conversations,
-                    onConversationClick = { selectedConversation = it },
+                    onConversationClick = { 
+                        selectedConversation = it
+                        viewModel.setConversation(it.id)
+                    },
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -78,7 +81,10 @@ fun AdminMessagingScreen(
         if (selectedConversation == null) {
             AdminInboxScreen(
                 conversations = conversations,
-                onConversationClick = { selectedConversation = it },
+                onConversationClick = { 
+                    selectedConversation = it
+                    viewModel.setConversation(it.id)
+                },
                 modifier = modifier
             )
         } else {
@@ -173,7 +179,7 @@ fun AdminConversationDetailScreen(
                     }
                 },
                 actions = {
-                    TextButton(onClick = { onNavigateToDossier("dossier/${conversation.dossierId}") }) {
+                    TextButton(onClick = { onNavigateToDossier(conversation.id) }) {
                         Text("Ouvrir le dossier")
                     }
                 }
@@ -199,7 +205,7 @@ fun AdminConversationDetailScreen(
                     MessageBubble(
                         text = "Dossier créé",
                         sender = MessageSender.SYSTEM,
-                        timestamp = conversation.createdAt
+                        timestamp = conversation.time
                     )
                 }
 
@@ -217,13 +223,13 @@ fun AdminConversationDetailScreen(
             Divider()
             AdminQuickActions(
                 onRequestDocument = {
-                    viewModel.sendMessage(conversation.id, "📄 Demande de document : Veuillez fournir...")
+                    viewModel.sendMessage("📄 Demande de document : Veuillez fournir...")
                 },
                 onRequestCorrection = {
-                    viewModel.sendMessage(conversation.id, "✏️ Demande de correction : Veuillez modifier...")
+                    viewModel.sendMessage("✏️ Demande de correction : Veuillez modifier...")
                 },
                 onValidateStep = {
-                    viewModel.sendMessage(conversation.id, "✅ Étape validée. Vous pouvez continuer.")
+                    viewModel.sendMessage("✅ Étape validée. Vous pouvez continuer.")
                 },
                 modifier = Modifier.padding(16.dp)
             )
@@ -251,7 +257,7 @@ fun AdminConversationDetailScreen(
                 IconButton(
                     onClick = {
                         if (messageText.isNotBlank()) {
-                            viewModel.sendMessage(conversation.id, messageText)
+                            viewModel.sendMessage(messageText)
                             messageText = ""
                         }
                     }
