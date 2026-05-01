@@ -100,6 +100,7 @@ fun ClientMessagingScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConversationListScreen(
     conversations: List<Conversation>,
