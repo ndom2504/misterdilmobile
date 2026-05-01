@@ -53,6 +53,7 @@ fun AdminMessagingScreen(
                     modifier = Modifier.fillMaxSize()
                 )
             }
+            @OptIn(ExperimentalMaterial3Api::class)
             VerticalDivider()
             // Conversation détail (droite)
             if (selectedConversation != null) {
