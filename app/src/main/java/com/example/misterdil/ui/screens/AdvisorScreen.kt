@@ -120,7 +120,7 @@ private fun AdvisorCard(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    admin.specialty ?: "Conseiller en immigration",
+                    admin.email,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
