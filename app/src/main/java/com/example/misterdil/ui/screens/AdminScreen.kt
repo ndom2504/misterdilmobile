@@ -7,7 +7,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items as lazyItems
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -144,7 +145,7 @@ private fun AdminDashboard(
                 Column {
                     Text("Filtrer par statut", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(statusOptions) { status ->
+                        lazyItems(statusOptions) { status ->
                             FilterChip(
                                 selected = statusFilter == status,
                                 onClick = { statusFilter = status },
@@ -160,7 +161,7 @@ private fun AdminDashboard(
                 Column {
                     Text("Filtrer par type", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(typeOptions) { type ->
+                        lazyItems(typeOptions) { type ->
                             FilterChip(
                                 selected = typeFilter == type,
                                 onClick = { typeFilter = type },
