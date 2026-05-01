@@ -79,7 +79,7 @@ class MisterdilApplication : Application() {
         super.onCreate()
         PaymentConfiguration.init(
             applicationContext,
-            "pk_test_your_publishable_key"
+            "pk_live_51MbDkjIWzdNW8NaIrvIy3j7RSkzMqubCTY4CGHUQhEI0td5RcZ5zi1rLZZWLVaRcbl295FwKxdYNTwJkW7dCaiLm00GmCriuNM"
         )
     }
 }
