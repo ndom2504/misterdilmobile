@@ -44,6 +44,36 @@ private val dossierTypes = listOf(
 
 private val adminColors = listOf(Color(0xFF1565C0), Color(0xFF2E7D32))
 
+/**
+ * Construit un message de récapitulatif pour l'admin
+ */
+fun buildRecapMessage(dossierType: String, formData: Map<String, String>, dossierId: String): String {
+    val builder = StringBuilder()
+    builder.append("📋 NOUVELLE DEMANDE DE DOSSIER\n\n")
+    builder.append("Type: $dossierType\n")
+    builder.append("ID: $dossierId\n\n")
+    
+    // Informations personnelles
+    if (formData.containsKey("first_name")) {
+        builder.append("👤 INFORMATIONS PERSONNELLES\n")
+        builder.append("Nom: ${formData["first_name"]} ${formData["last_name"]}\n")
+        builder.append("Email: ${formData["email"]}\n")
+        builder.append("Téléphone: ${formData["phone"]}\n\n")
+    }
+    
+    // Score CRS pour Entrée Express
+    if (dossierType == "Entrée Express") {
+        builder.append("📊 SCORE CRS\n")
+        builder.append("Score estimé: ${formData["crs_score"] ?: "N/A"}\n")
+        builder.append("Programme probable: ${formData["eligible_program"] ?: "N/A"}\n")
+        builder.append("Éligibilité: ${formData["eligibility_status"] ?: "N/A"}\n\n")
+    }
+    
+    builder.append("📝 Veuillez examiner ce dossier et accepter ou rejeter la demande d'accompagnement.")
+    
+    return builder.toString()
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateDossierScreen(
@@ -101,9 +131,21 @@ fun CreateDossierScreen(
 
     LaunchedEffect(createState) {
         if (createState is CreateDossierState.Success) {
-            dossierCreatedType = selectedType
             dossierId = (createState as CreateDossierState.Success).dossierId
+            // Créer la conversation et envoyer le message de récapitulatif à l'admin
+            selectedAdmin?.let { admin ->
+                chatViewModel.createConversationForDossier(
+                    adminId = admin.id.toString(),
+                    adminName = admin.name,
+                    dossierType = dossierCreatedType ?: selectedType,
+                    dossierId = dossierId
+                )
+                // Envoyer le message de récapitulatif
+                val recapMessage = buildRecapMessage(selectedType, formFields.toMap(), dossierId ?: "")
+                chatViewModel.sendMessage(recapMessage)
+            }
             viewModel.resetCreateState()
+            showAdvisorSelection = false
         }
     }
 
@@ -145,7 +187,8 @@ fun CreateDossierScreen(
                 onBack = { showAdvisorSelection = false },
                 onAdvisorSelected = { admin ->
                     selectedAdmin = admin
-                    // Créer le dossier et envoyer la notification au conseiller
+                    dossierCreatedType = selectedType
+                    // Créer le dossier
                     viewModel.createDossier(type = selectedType, formData = formFields.toMap())
                 }
             )
