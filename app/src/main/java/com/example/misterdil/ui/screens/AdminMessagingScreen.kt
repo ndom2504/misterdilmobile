@@ -215,7 +215,7 @@ fun AdminConversationDetailScreen(
                     MessageBubble(
                         text = msg.text,
                         sender = if (msg.isFromMe) MessageSender.ADMIN else MessageSender.CLIENT,
-                        timestamp = msg.timestamp
+                        timestamp = msg.timestamp.toString()
                     )
                 }
             }
