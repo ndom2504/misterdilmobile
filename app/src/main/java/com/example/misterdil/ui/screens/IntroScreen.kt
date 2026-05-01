@@ -13,15 +13,20 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import com.example.misterdil.R
 
 @Composable
 fun IntroScreen(onFinished: () -> Unit) {
     val context = LocalContext.current
 
+    val resId = context.resources.getIdentifier("intro", "raw", context.packageName)
+    if (resId == 0) {
+        LaunchedEffect(Unit) { onFinished() }
+        return
+    }
+
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
-            val uri = Uri.parse("android.resource://${context.packageName}/${R.raw.intro}")
+            val uri = Uri.parse("android.resource://${context.packageName}/$resId")
             setMediaItem(MediaItem.fromUri(uri))
             repeatMode = Player.REPEAT_MODE_OFF
             playWhenReady = true
