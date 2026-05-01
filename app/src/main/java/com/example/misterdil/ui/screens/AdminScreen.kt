@@ -52,7 +52,7 @@ fun AdminScreen(
 
     if (showProfile) {
         ProfileScreen(
-            repository = chatViewModel.repository,
+            repository = chatViewModel.dossierRepository,
             currentName = userName ?: "Admin",
             currentAvatarUrl = null,
             onBack = { showProfile = false },

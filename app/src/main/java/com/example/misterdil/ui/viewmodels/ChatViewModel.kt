@@ -23,7 +23,7 @@ sealed class ConversationCreateState {
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChatViewModel(
-    private val repository: ChatRepository,
+    val repository: ChatRepository,
     val dossierRepository: DossierRepository
 ) : ViewModel() {
 
