@@ -1,7 +1,6 @@
 const { sql } = require('../../lib/db');
-const { withAuth } = require('../../lib/middleware');
 
-module.exports = withAuth(async (req, res) => {
+module.exports = async (req, res) => {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
@@ -13,4 +12,4 @@ module.exports = withAuth(async (req, res) => {
     console.error('Get admins error:', err);
     return res.status(500).json({ error: 'Erreur serveur' });
   }
-});
+};
