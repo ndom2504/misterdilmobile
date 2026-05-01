@@ -3,7 +3,9 @@ package com.example.misterdil.ui.screens
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
@@ -33,9 +35,6 @@ import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.launch
 
-private const val GOOGLE_WEB_CLIENT_ID =
-    "161120944636-19kdl5afp88v7afhbvuo1cde4ropbmtg.apps.googleusercontent.com"
-
 @Composable
 fun LoginScreen(
     viewModel: AuthViewModel,
@@ -64,6 +63,7 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp)
                 .systemBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -249,23 +249,6 @@ fun LoginScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedButton(
-                onClick = {
-                    Toast.makeText(context, "Microsoft Sign-In — Configuration requise dans Azure AD", Toast.LENGTH_LONG).show()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Text(
-                    "⊞  Continuer avec Microsoft",
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF00A4EF)
-                )
-            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
