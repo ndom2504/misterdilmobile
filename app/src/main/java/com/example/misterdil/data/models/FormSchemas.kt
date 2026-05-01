@@ -670,9 +670,9 @@ object FormSchemas {
     )
     
     fun getSchemaByDossierType(dossierType: String): FormSchema? {
-        return when (dossierType.uppercase()) {
-            "ENTREE_EXPRESS" -> entreeExpressSchema
-            "PERMIS_ETUDES" -> permisEtudesSchema
+        return when (dossierType) {
+            "Entrée Express" -> entreeExpressSchema
+            "Permis d'études" -> permisEtudesSchema
             else -> null
         }
     }
