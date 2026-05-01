@@ -101,7 +101,6 @@ fun MIsterdilApp(
                             contentDescription = it.label
                         )
                     },
-                    label = { Text(it.label) },
                     selected = it == currentDestination,
                     onClick = { currentDestination = it }
                 )

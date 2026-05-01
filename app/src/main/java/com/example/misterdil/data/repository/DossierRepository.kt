@@ -2,6 +2,8 @@ package com.example.misterdil.data.repository
 
 import com.example.misterdil.data.local.DossierDao
 import com.example.misterdil.data.models.Dossier
+import com.example.misterdil.data.remote.AdminProfile
+import com.example.misterdil.data.remote.CreateDossierRequest
 import com.example.misterdil.data.remote.DossierApiService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -22,6 +24,20 @@ class DossierRepository(
                 // Ici on pourrait gérer les erreurs plus finement (ex: Timber ou log)
                 e.printStackTrace()
             }
+        }
+    }
+
+    suspend fun createDossier(type: String, formData: Map<String, String>): Dossier {
+        return withContext(Dispatchers.IO) {
+            val dossier = apiService.createDossier(CreateDossierRequest(type, formData))
+            dossierDao.insertDossiers(listOf(dossier))
+            dossier
+        }
+    }
+
+    suspend fun getAdmins(): List<AdminProfile> {
+        return withContext(Dispatchers.IO) {
+            apiService.getAdmins()
         }
     }
 }

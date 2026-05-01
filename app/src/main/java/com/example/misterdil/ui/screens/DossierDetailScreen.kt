@@ -160,6 +160,24 @@ fun getTemplateForType(type: String): List<FormField> {
             FormField("biz_3", "Investissement prévu ($)", FieldType.NUMBER),
             FormField("biz_4", "Nombre d'emplois créés", FieldType.NUMBER)
         )
+        "Regroupement familial" -> listOf(
+            FormField("rf_1", "Nom du répondant", FieldType.TEXT),
+            FormField("rf_2", "Lien de parenté", FieldType.TEXT),
+            FormField("rf_3", "Statut du répondant au Canada", FieldType.TEXT),
+            FormField("rf_4", "Date de naissance du répondant", FieldType.DATE)
+        )
+        "Visa visiteur" -> listOf(
+            FormField("vv_1", "But de la visite", FieldType.TEXT),
+            FormField("vv_2", "Durée prévue du séjour (jours)", FieldType.NUMBER),
+            FormField("vv_3", "Province de destination", FieldType.TEXT),
+            FormField("vv_4", "Fonds disponibles ($)", FieldType.NUMBER)
+        )
+        "Résidence permanente" -> listOf(
+            FormField("rp_1", "Catégorie visée", FieldType.TEXT),
+            FormField("rp_2", "Années de résidence au Canada", FieldType.NUMBER),
+            FormField("rp_3", "Province de résidence", FieldType.TEXT),
+            FormField("rp_4", "Score IELTS/TEF", FieldType.TEXT)
+        )
         else -> listOf(
             FormField("gen_1", "Commentaires additionnels", FieldType.TEXT, required = false)
         )

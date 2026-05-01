@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -20,11 +21,20 @@ import com.example.misterdil.ui.viewmodels.DossierViewModel
 @Composable
 fun DossierScreen(viewModel: DossierViewModel, modifier: Modifier = Modifier) {
     var selectedFilter by remember { mutableStateOf("Tous") }
-    val filters = listOf("Tous", "Études", "Entrée express", "Plan d'affaires")
+    val filters = listOf("Tous", "Entrée Express", "Permis d'études", "Plan d'affaires", "Regroupement familial", "Visa visiteur", "Résidence permanente")
     val dossiers by viewModel.dossiers.collectAsState()
-    
-    // État pour gérer l'affichage de la liste ou du détail
+
     var selectedDossier by remember { mutableStateOf<Dossier?>(null) }
+    var showCreate by remember { mutableStateOf(false) }
+
+    if (showCreate) {
+        CreateDossierScreen(
+            viewModel = viewModel,
+            onBack = { showCreate = false },
+            modifier = modifier
+        )
+        return
+    }
 
     if (selectedDossier == null) {
         Scaffold(
@@ -40,6 +50,11 @@ fun DossierScreen(viewModel: DossierViewModel, modifier: Modifier = Modifier) {
                         }
                     }
                 )
+            },
+            floatingActionButton = {
+                FloatingActionButton(onClick = { showCreate = true }) {
+                    Icon(Icons.Default.Add, contentDescription = "Nouveau dossier")
+                }
             },
             modifier = modifier
         ) { padding ->
