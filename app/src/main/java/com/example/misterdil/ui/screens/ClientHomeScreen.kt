@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.misterdil.data.models.Dossier
@@ -38,6 +39,8 @@ fun ClientHomeScreen(
 ) {
     val dossiers by dossierViewModel.dossiers.collectAsState()
     val activeDossiers = dossiers.filter { it.status != "Complété" }
+    val configuration = LocalConfiguration.current
+    val isTablet = configuration.screenWidthDp >= 600
 
     Scaffold(
         topBar = {
@@ -52,59 +55,114 @@ fun ClientHomeScreen(
         },
         modifier = modifier
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            // Header Client
-            item {
-                ClientHeader(
-                    userName = userName,
-                    activeDossiersCount = activeDossiers.size,
-                    hasPendingAction = dossiers.any { it.status == "En attente" || it.progress < 1.0f }
-                )
-            }
+        if (isTablet) {
+            // Tablet layout: 2 columns
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    // Header Client
+                    ClientHeader(
+                        userName = userName,
+                        activeDossiersCount = activeDossiers.size,
+                        hasPendingAction = dossiers.any { it.status == "En attente" || it.progress < 1.0f }
+                    )
 
-            // Carte "Mon dossier principal"
-            if (dossiers.isNotEmpty()) {
-                val mainDossier = dossiers.first()
+                    // Carte "Mon dossier principal"
+                    if (dossiers.isNotEmpty()) {
+                        val mainDossier = dossiers.first()
+                        MainDossierCard(
+                            dossierType = mainDossier.type,
+                            status = mainDossier.status,
+                            progress = mainDossier.progress,
+                            ctaText = getCTAForDossier(mainDossier),
+                            onCtaClick = { onNavigateTo("dossier/${mainDossier.id}") }
+                        )
+                    } else {
+                        CreateDossierPlaceholder(onClick = { onNavigateTo("create_dossier") })
+                    }
+
+                    // Raccourcis secondaires
+                    SecondaryShortcuts(onNavigateTo = onNavigateTo)
+                }
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    // Checklist rapide
+                    QuickChecklist(
+                        dossiers = dossiers,
+                        onNavigateTo = onNavigateTo
+                    )
+
+                    // Messages récents
+                    RecentMessagesSection(onNavigateTo = onNavigateTo)
+                }
+            }
+        } else {
+            // Mobile layout: single column
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                // Header Client
                 item {
-                    MainDossierCard(
-                        dossierType = mainDossier.type,
-                        status = mainDossier.status,
-                        progress = mainDossier.progress,
-                        ctaText = getCTAForDossier(mainDossier),
-                        onCtaClick = { onNavigateTo("dossier/${mainDossier.id}") }
+                    ClientHeader(
+                        userName = userName,
+                        activeDossiersCount = activeDossiers.size,
+                        hasPendingAction = dossiers.any { it.status == "En attente" || it.progress < 1.0f }
                     )
                 }
-            } else {
-                item {
-                    CreateDossierPlaceholder(onClick = { onNavigateTo("create_dossier") })
+
+                // Carte "Mon dossier principal"
+                if (dossiers.isNotEmpty()) {
+                    val mainDossier = dossiers.first()
+                    item {
+                        MainDossierCard(
+                            dossierType = mainDossier.type,
+                            status = mainDossier.status,
+                            progress = mainDossier.progress,
+                            ctaText = getCTAForDossier(mainDossier),
+                            onCtaClick = { onNavigateTo("dossier/${mainDossier.id}") }
+                        )
+                    }
+                } else {
+                    item {
+                        CreateDossierPlaceholder(onClick = { onNavigateTo("create_dossier") })
+                    }
                 }
-            }
 
-            // Checklist rapide
-            item {
-                QuickChecklist(
-                    dossiers = dossiers,
-                    onNavigateTo = onNavigateTo
-                )
-            }
+                // Checklist rapide
+                item {
+                    QuickChecklist(
+                        dossiers = dossiers,
+                        onNavigateTo = onNavigateTo
+                    )
+                }
 
-            // Messages récents
-            item {
-                RecentMessagesSection(onNavigateTo = onNavigateTo)
-            }
+                // Messages récents
+                item {
+                    RecentMessagesSection(onNavigateTo = onNavigateTo)
+                }
 
-            // Raccourcis secondaires
-            item {
-                SecondaryShortcuts(onNavigateTo = onNavigateTo)
-            }
+                // Raccourcis secondaires
+                item {
+                    SecondaryShortcuts(onNavigateTo = onNavigateTo)
+                }
 
-            item { Spacer(modifier = Modifier.height(80.dp)) }
+                item { Spacer(modifier = Modifier.height(80.dp)) }
+            }
         }
     }
 }

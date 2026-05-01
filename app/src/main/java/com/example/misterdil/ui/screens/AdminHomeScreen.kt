@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.misterdil.data.models.Conversation
@@ -37,6 +38,8 @@ fun AdminHomeScreen(
 ) {
     val dossiers by dossierViewModel.dossiers.collectAsState()
     val conversations by chatViewModel.conversations.collectAsState()
+    val configuration = LocalConfiguration.current
+    val isTablet = configuration.screenWidthDp >= 600
 
     val blockedDossiers = dossiers.filter { it.status == "Bloqué" }
     val pendingPayments = dossiers.filter { it.status == "En attente" && it.progress < 0.5f }
@@ -56,100 +59,196 @@ fun AdminHomeScreen(
         },
         modifier = modifier
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            // Header Admin avec indicateurs clés
-            item {
-                AdminHeader(
-                    userName = userName,
-                    blockedCount = blockedDossiers.size,
-                    pendingPaymentsCount = pendingPayments.size,
-                    activeCount = activeDossiers.size
-                )
-            }
+        if (isTablet) {
+            // Tablet layout: 2 columns
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    // Header Admin avec indicateurs clés
+                    AdminHeader(
+                        userName = userName,
+                        blockedCount = blockedDossiers.size,
+                        pendingPaymentsCount = pendingPayments.size,
+                        activeCount = activeDossiers.size
+                    )
 
-            // Actions rapides Admin
-            item {
-                AdminQuickActions(onNavigateTo = onNavigateTo)
-            }
+                    // Actions rapides Admin
+                    AdminQuickActions(onNavigateTo = onNavigateTo)
 
-            // Vue "À traiter en priorité"
-            if (blockedDossiers.isNotEmpty()) {
+                    // Vue "À traiter en priorité"
+                    if (blockedDossiers.isNotEmpty()) {
+                        Text(
+                            "À traiter en priorité",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        blockedDossiers.take(5).forEach { dossier ->
+                            PriorityItemCard(
+                                clientName = dossier.clientName,
+                                dossierType = dossier.type,
+                                reason = "Document manquant",
+                                onValidate = { onNavigateTo("dossier/${dossier.id}") },
+                                onContact = { onNavigateTo("messagerie") }
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    } else if (pendingPayments.isNotEmpty()) {
+                        Text(
+                            "Paiements en attente",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        pendingPayments.take(5).forEach { dossier ->
+                            PriorityItemCard(
+                                clientName = dossier.clientName,
+                                dossierType = dossier.type,
+                                reason = "Paiement non effectué",
+                                onValidate = { onNavigateTo("dossier/${dossier.id}") },
+                                onContact = { onNavigateTo("messagerie") }
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+                }
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    // Vue globale dossiers avec filtres
+                    GlobalDossiersView(
+                        dossiers = dossiers,
+                        onNavigateTo = onNavigateTo
+                    )
+
+                    // Messages non lus
+                    if (unreadConversations.isNotEmpty()) {
+                        Text(
+                            "Messages non lus",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        unreadConversations.take(5).forEach { conv ->
+                            UnreadMessageCard(
+                                clientName = conv.clientName,
+                                projectName = conv.projectName,
+                                lastMessage = conv.lastMessage,
+                                unreadCount = conv.unreadCount,
+                                onClick = { onNavigateTo("messagerie/${conv.id}") }
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+                }
+            }
+        } else {
+            // Mobile layout: single column
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                // Header Admin avec indicateurs clés
                 item {
-                    Text(
-                        "À traiter en priorité",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                    AdminHeader(
+                        userName = userName,
+                        blockedCount = blockedDossiers.size,
+                        pendingPaymentsCount = pendingPayments.size,
+                        activeCount = activeDossiers.size
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
-                items(blockedDossiers.take(5)) { dossier ->
-                    PriorityItemCard(
-                        clientName = dossier.clientName,
-                        dossierType = dossier.type,
-                        reason = "Document manquant",
-                        onValidate = { onNavigateTo("dossier/${dossier.id}") },
-                        onContact = { onNavigateTo("messagerie") }
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-            } else if (pendingPayments.isNotEmpty()) {
+
+                // Actions rapides Admin
                 item {
-                    Text(
-                        "Paiements en attente",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    AdminQuickActions(onNavigateTo = onNavigateTo)
                 }
-                items(pendingPayments.take(5)) { dossier ->
-                    PriorityItemCard(
-                        clientName = dossier.clientName,
-                        dossierType = dossier.type,
-                        reason = "Paiement non effectué",
-                        onValidate = { onNavigateTo("dossier/${dossier.id}") },
-                        onContact = { onNavigateTo("messagerie") }
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
+
+                // Vue "À traiter en priorité"
+                if (blockedDossiers.isNotEmpty()) {
+                    item {
+                        Text(
+                            "À traiter en priorité",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    items(blockedDossiers.take(5)) { dossier ->
+                        PriorityItemCard(
+                            clientName = dossier.clientName,
+                            dossierType = dossier.type,
+                            reason = "Document manquant",
+                            onValidate = { onNavigateTo("dossier/${dossier.id}") },
+                            onContact = { onNavigateTo("messagerie") }
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                } else if (pendingPayments.isNotEmpty()) {
+                    item {
+                        Text(
+                            "Paiements en attente",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    items(pendingPayments.take(5)) { dossier ->
+                        PriorityItemCard(
+                            clientName = dossier.clientName,
+                            dossierType = dossier.type,
+                            reason = "Paiement non effectué",
+                            onValidate = { onNavigateTo("dossier/${dossier.id}") },
+                            onContact = { onNavigateTo("messagerie") }
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
-            }
 
-            // Vue globale dossiers avec filtres
-            item {
-                GlobalDossiersView(
-                    dossiers = dossiers,
-                    onNavigateTo = onNavigateTo
-                )
-            }
-
-            // Messages non lus
-            if (unreadConversations.isNotEmpty()) {
+                // Vue globale dossiers avec filtres
                 item {
-                    Text(
-                        "Messages non lus",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                    GlobalDossiersView(
+                        dossiers = dossiers,
+                        onNavigateTo = onNavigateTo
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
-                items(unreadConversations.take(5)) { conv ->
-                    UnreadMessageCard(
-                        clientName = conv.clientName,
-                        projectName = conv.projectName,
-                        lastMessage = conv.lastMessage,
-                        unreadCount = conv.unreadCount,
-                        onClick = { onNavigateTo("messagerie/${conv.id}") }
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-            }
 
-            item { Spacer(modifier = Modifier.height(80.dp)) }
+                // Messages non lus
+                if (unreadConversations.isNotEmpty()) {
+                    item {
+                        Text(
+                            "Messages non lus",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    items(unreadConversations.take(5)) { conv ->
+                        UnreadMessageCard(
+                            clientName = conv.clientName,
+                            projectName = conv.projectName,
+                            lastMessage = conv.lastMessage,
+                            unreadCount = conv.unreadCount,
+                            onClick = { onNavigateTo("messagerie/${conv.id}") }
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+
+                item { Spacer(modifier = Modifier.height(80.dp)) }
+            }
         }
     }
 }
