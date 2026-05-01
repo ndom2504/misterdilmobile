@@ -8,7 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Copy
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -178,7 +178,7 @@ fun DossierHeader(dossier: Dossier) {
                 color = MaterialTheme.colorScheme.secondary
             )
             IconButton(onClick = { /* Copy ID */ }, modifier = Modifier.size(24.dp)) {
-                Icon(Icons.Default.Copy, contentDescription = "Copier", modifier = Modifier.size(16.dp))
+                Icon(Icons.Default.ContentCopy, contentDescription = "Copier", modifier = Modifier.size(16.dp))
             }
         }
     }
