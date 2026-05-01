@@ -18,34 +18,31 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.misterdil.ui.viewmodels.PaymentUiState
 import com.example.misterdil.ui.viewmodels.PaymentViewModel
-import androidx.activity.ComponentActivity
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResult
+import com.stripe.android.paymentsheet.rememberPaymentSheet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaiementScreen(viewModel: PaymentViewModel, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
-    
-    val activity = context as ComponentActivity
-    val paymentSheet = remember(activity) {
-        PaymentSheet.Builder { paymentResult ->
-            when (paymentResult) {
-                is PaymentSheetResult.Completed -> {
-                    Toast.makeText(context, "Paiement réussi !", Toast.LENGTH_SHORT).show()
-                    viewModel.resetState()
-                }
-                is PaymentSheetResult.Canceled -> {
-                    Toast.makeText(context, "Paiement annulé", Toast.LENGTH_SHORT).show()
-                    viewModel.resetState()
-                }
-                is PaymentSheetResult.Failed -> {
-                    Toast.makeText(context, "Erreur: ${paymentResult.error.message}", Toast.LENGTH_LONG).show()
-                    viewModel.resetState()
-                }
+
+    val paymentSheet = rememberPaymentSheet { paymentResult ->
+        when (paymentResult) {
+            is PaymentSheetResult.Completed -> {
+                Toast.makeText(context, "Paiement réussi !", Toast.LENGTH_SHORT).show()
+                viewModel.resetState()
             }
-        }.build(activity)
+            is PaymentSheetResult.Canceled -> {
+                Toast.makeText(context, "Paiement annulé", Toast.LENGTH_SHORT).show()
+                viewModel.resetState()
+            }
+            is PaymentSheetResult.Failed -> {
+                Toast.makeText(context, "Erreur: ${paymentResult.error.message}", Toast.LENGTH_LONG).show()
+                viewModel.resetState()
+            }
+        }
     }
 
     LaunchedEffect(uiState) {
@@ -55,8 +52,8 @@ fun PaiementScreen(viewModel: PaymentViewModel, modifier: Modifier = Modifier) {
                 response.clientSecret,
                 PaymentSheet.Configuration(
                     merchantDisplayName = "Misterdil",
-                    customer = response.customerId?.let { 
-                        PaymentSheet.CustomerConfiguration(it, response.ephemeralKeySecret!!) 
+                    customer = response.customerId?.let {
+                        PaymentSheet.CustomerConfiguration(it, response.ephemeralKeySecret!!)
                     }
                 )
             )
