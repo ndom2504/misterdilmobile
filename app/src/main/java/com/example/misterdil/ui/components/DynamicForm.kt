@@ -86,7 +86,7 @@ fun FormSectionCard(
                 )
             }
             
-            Divider()
+            HorizontalDivider()
             
             // Render fields
             section.fields.forEach { field ->

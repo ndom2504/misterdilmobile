@@ -175,6 +175,16 @@ fun DynamicField(field: FormField, onValueChange: (String) -> Unit, enabled: Boo
                     enabled = enabled
                 )
             }
+            else -> {
+                // Handle other field types (TEXT_AREA, CHECKBOX, RADIO, MULTI_SELECT, FILE_UPLOAD, SECTION_HEADER, READ_ONLY)
+                OutlinedTextField(
+                    value = field.value,
+                    onValueChange = onValueChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Saisir ici...") },
+                    enabled = enabled
+                )
+            }
         }
     }
 }
