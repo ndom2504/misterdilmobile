@@ -29,11 +29,29 @@ fun PaymentStatusBadge(
     status: PaymentStatus,
     modifier: Modifier = Modifier
 ) {
-    val (icon, text, color, bgColor) = when (status) {
-        PaymentStatus.PENDING -> Icons.Default.Pending to "En attente" to MaterialTheme.colorScheme.onTertiaryContainer to MaterialTheme.colorScheme.tertiaryContainer
-        PaymentStatus.PAID -> Icons.Default.CheckCircle to "Payé" to MaterialTheme.colorScheme.onPrimaryContainer to MaterialTheme.colorScheme.primaryContainer
-        PaymentStatus.FAILED -> Icons.Default.Warning to "Échoué" to MaterialTheme.colorScheme.onError to MaterialTheme.colorScheme.errorContainer
-        PaymentStatus.NOT_GENERATED -> Icons.Default.Pending to "Non généré" to MaterialTheme.colorScheme.onSurfaceVariant to MaterialTheme.colorScheme.surfaceVariant
+    val icon = when (status) {
+        PaymentStatus.PENDING -> Icons.Default.Pending
+        PaymentStatus.PAID -> Icons.Default.CheckCircle
+        PaymentStatus.FAILED -> Icons.Default.Warning
+        PaymentStatus.NOT_GENERATED -> Icons.Default.Pending
+    }
+    val text = when (status) {
+        PaymentStatus.PENDING -> "En attente"
+        PaymentStatus.PAID -> "Payé"
+        PaymentStatus.FAILED -> "Échoué"
+        PaymentStatus.NOT_GENERATED -> "Non généré"
+    }
+    val color = when (status) {
+        PaymentStatus.PENDING -> MaterialTheme.colorScheme.onTertiaryContainer
+        PaymentStatus.PAID -> MaterialTheme.colorScheme.onPrimaryContainer
+        PaymentStatus.FAILED -> MaterialTheme.colorScheme.onError
+        PaymentStatus.NOT_GENERATED -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val bgColor = when (status) {
+        PaymentStatus.PENDING -> MaterialTheme.colorScheme.tertiaryContainer
+        PaymentStatus.PAID -> MaterialTheme.colorScheme.primaryContainer
+        PaymentStatus.FAILED -> MaterialTheme.colorScheme.errorContainer
+        PaymentStatus.NOT_GENERATED -> MaterialTheme.colorScheme.surfaceVariant
     }
 
     Surface(
