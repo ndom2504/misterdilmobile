@@ -59,8 +59,113 @@ CREATE TABLE messages (
 -- Indexes
 CREATE INDEX idx_dossiers_user       ON dossiers(user_id);
 CREATE INDEX idx_conversations_user  ON conversations(user_id);
+CREATE INDEX idx_conversations_admin ON conversations(admin_id);
 CREATE INDEX idx_messages_conv       ON messages(conversation_id);
 CREATE INDEX idx_messages_timestamp  ON messages(timestamp);
+
+-- ==========================================
+-- ROW LEVEL SECURITY (RLS) POLICIES
+-- ==========================================
+
+-- Activer RLS sur toutes les tables
+ALTER TABLE dossiers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+
+-- Rôles PostgreSQL (mappés depuis JWT)
+-- Ces rôles doivent être créés dans Neon et mappés via JWT claims
+-- DO $$
+-- BEGIN
+--   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'admin_role') THEN
+--     CREATE ROLE admin_role;
+--   END IF;
+--   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'user_role') THEN
+--     CREATE ROLE user_role;
+--   END IF;
+--   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated_role') THEN
+--     CREATE ROLE authenticated_role;
+--   END IF;
+-- END $$;
+
+-- GRANT roles aux utilisateurs
+-- GRANT admin_role, user_role, authenticated_role TO postgres;
+
+-- ==========================================
+-- POLICIES: Dossiers
+-- ==========================================
+
+-- Les admins peuvent lire tous les dossiers
+CREATE POLICY admins_read_all_dossiers ON dossiers
+  FOR SELECT TO admin_role
+  USING (true);
+
+-- Les clients ne lisent que leurs dossiers
+CREATE POLICY users_read_own_dossiers ON dossiers
+  FOR SELECT TO user_role
+  USING (user_id = current_setting('jwt.user_id')::UUID);
+
+-- Les clients peuvent créer des dossiers
+CREATE POLICY users_create_dossiers ON dossiers
+  FOR INSERT TO user_role
+  WITH CHECK (user_id = current_setting('jwt.user_id')::UUID);
+
+-- Les admins peuvent modifier tous les dossiers
+CREATE POLICY admins_update_dossiers ON dossiers
+  FOR UPDATE TO admin_role
+  USING (true);
+
+-- Les clients peuvent modifier seulement si status != 'Soumis'
+CREATE POLICY users_update_own_dossiers ON dossiers
+  FOR UPDATE TO user_role
+  USING (
+    user_id = current_setting('jwt.user_id')::UUID
+    AND status != 'Soumis'
+  );
+
+-- ==========================================
+-- POLICIES: Conversations
+-- ==========================================
+
+-- Admins lisent toutes leurs conversations assignées
+CREATE POLICY admins_read_assigned_conversations ON conversations
+  FOR SELECT TO admin_role
+  USING (admin_id = current_setting('jwt.user_id')::UUID);
+
+-- Clients lisent leurs conversations
+CREATE POLICY users_read_own_conversations ON conversations
+  FOR SELECT TO user_role
+  USING (user_id = current_setting('jwt.user_id')::UUID);
+
+-- Les clients peuvent créer des conversations
+CREATE POLICY users_create_conversations ON conversations
+  FOR INSERT TO user_role
+  WITH CHECK (user_id = current_setting('jwt.user_id')::UUID);
+
+-- ==========================================
+-- POLICIES: Messages
+-- ==========================================
+
+-- Les participants d'une conversation peuvent lire ses messages
+CREATE POLICY participants_read_messages ON messages
+  FOR SELECT TO authenticated_role
+  USING (
+    EXISTS (
+      SELECT 1 FROM conversations c
+      WHERE c.id = conversation_id
+      AND (c.user_id = current_setting('jwt.user_id')::UUID OR c.admin_id = current_setting('jwt.user_id')::UUID)
+    )
+  );
+
+-- Les participants peuvent envoyer des messages
+CREATE POLICY participants_send_messages ON messages
+  FOR INSERT TO authenticated_role
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM conversations c
+      WHERE c.id = conversation_id
+      AND (c.user_id = current_setting('jwt.user_id')::UUID OR c.admin_id = current_setting('jwt.user_id')::UUID)
+    )
+  );
 
 -- Utilisateur de test (mot de passe: test1234)
 INSERT INTO users (email, password_hash, name)

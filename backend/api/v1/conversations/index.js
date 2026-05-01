@@ -4,6 +4,8 @@ const { withAuth } = require('../../../lib/middleware');
 module.exports = withAuth(async (req, res) => {
   if (req.method === 'GET') {
     try {
+      // Admins: voir toutes leurs conversations assignées
+      // Clients: voir seulement leurs conversations
       const isAdmin = req.user.role === 'admin';
       const conversations = isAdmin
         ? await sql`

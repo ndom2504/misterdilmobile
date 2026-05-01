@@ -1,15 +1,24 @@
 const { sql } = require('../../../lib/db');
 const { withAuth } = require('../../../lib/middleware');
+const { guardAdmin } = require('../../../lib/guards');
 
 module.exports = withAuth(async (req, res) => {
   if (req.method === 'GET') {
     try {
-      const dossiers = await sql`
-        SELECT id, client_name, type, status, progress, last_update
-        FROM dossiers
-        WHERE user_id = ${req.user.userId}
-        ORDER BY created_at DESC
-      `;
+      // Admins: voir tous les dossiers
+      // Clients: voir seulement leurs dossiers
+      const dossiers = req.user.role === 'admin'
+        ? await sql`
+            SELECT id, client_name, type, status, progress, last_update, user_id
+            FROM dossiers
+            ORDER BY created_at DESC
+          `
+        : await sql`
+            SELECT id, client_name, type, status, progress, last_update
+            FROM dossiers
+            WHERE user_id = ${req.user.userId}
+            ORDER BY created_at DESC
+          `;
       return res.status(200).json(dossiers);
     } catch (err) {
       console.error('Get dossiers error:', err);
