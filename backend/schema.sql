@@ -64,6 +64,43 @@ CREATE INDEX idx_messages_conv       ON messages(conversation_id);
 CREATE INDEX idx_messages_timestamp  ON messages(timestamp);
 
 -- ==========================================
+-- AUDIT LOGS TABLE
+-- ==========================================
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL,
+  action      VARCHAR(50) NOT NULL,
+  resource    VARCHAR(100) NOT NULL,
+  resource_id UUID,
+  details     JSONB,
+  timestamp   TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_audit_logs_user ON audit_logs(user_id);
+CREATE INDEX idx_audit_logs_resource ON audit_logs(resource, resource_id);
+CREATE INDEX idx_audit_logs_timestamp ON audit_logs(timestamp);
+
+-- Trigger function for audit logging
+CREATE OR REPLACE FUNCTION audit_log_trigger()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO audit_logs (user_id, action, resource, resource_id, details)
+  VALUES (
+    current_setting('request.jwt.user_id', true)::UUID,
+    TG_OP,
+    TG_TABLE_NAME,
+    COALESCE(NEW.id, OLD.id),
+    jsonb_build_object(
+      'old_data', to_jsonb(OLD),
+      'new_data', to_jsonb(NEW)
+    )
+  );
+  RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+-- ==========================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
 -- ==========================================
 
@@ -88,9 +125,14 @@ ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 -- POLICIES: Dossiers
 -- ==========================================
 
+-- DENY par défaut (fail-safe)
+CREATE POLICY deny_all_dossiers ON dossiers
+  FOR ALL
+  USING (false);
+
 -- Les admins peuvent lire tous les dossiers
 CREATE POLICY admins_read_all_dossiers ON dossiers
-  FOR ALL
+  FOR SELECT
   USING (
     (current_setting('request.jwt.claims', true)::jsonb ->> 'role') = 'admin'
   );
@@ -103,12 +145,13 @@ CREATE POLICY users_read_own_dossiers ON dossiers
     AND user_id = current_setting('request.jwt.user_id', true)::UUID
   );
 
--- Les clients peuvent créer des dossiers
+-- Les clients peuvent créer des dossiers (uniquement si status = 'En attente')
 CREATE POLICY users_create_dossiers ON dossiers
   FOR INSERT
   WITH CHECK (
     (current_setting('request.jwt.claims', true)::jsonb ->> 'role') = 'user'
     AND user_id = current_setting('request.jwt.user_id', true)::UUID
+    AND status = 'En attente'
   );
 
 -- Les admins peuvent modifier tous les dossiers
@@ -118,18 +161,28 @@ CREATE POLICY admins_update_dossiers ON dossiers
     (current_setting('request.jwt.claims', true)::jsonb ->> 'role') = 'admin'
   );
 
--- Les clients peuvent modifier seulement si status != 'Soumis'
+-- Les clients peuvent modifier seulement si status != 'Soumis' et != 'Complété'
 CREATE POLICY users_update_own_dossiers ON dossiers
   FOR UPDATE
   USING (
     (current_setting('request.jwt.claims', true)::jsonb ->> 'role') = 'user'
     AND user_id = current_setting('request.jwt.user_id', true)::UUID
-    AND status != 'Soumis'
+    AND status NOT IN ('Soumis', 'Complété')
   );
+
+-- Audit trigger pour dossiers
+CREATE TRIGGER audit_dossiers_trigger
+  AFTER INSERT OR UPDATE OR DELETE ON dossiers
+  FOR EACH ROW EXECUTE FUNCTION audit_log_trigger();
 
 -- ==========================================
 -- POLICIES: Conversations
 -- ==========================================
+
+-- DENY par défaut (fail-safe)
+CREATE POLICY deny_all_conversations ON conversations
+  FOR ALL
+  USING (false);
 
 -- Admins lisent toutes leurs conversations assignées
 CREATE POLICY admins_read_assigned_conversations ON conversations
@@ -155,9 +208,19 @@ CREATE POLICY users_create_conversations ON conversations
     AND user_id = current_setting('request.jwt.user_id', true)::UUID
   );
 
+-- Audit trigger pour conversations
+CREATE TRIGGER audit_conversations_trigger
+  AFTER INSERT OR UPDATE OR DELETE ON conversations
+  FOR EACH ROW EXECUTE FUNCTION audit_log_trigger();
+
 -- ==========================================
 -- POLICIES: Messages
 -- ==========================================
+
+-- DENY par défaut (fail-safe)
+CREATE POLICY deny_all_messages ON messages
+  FOR ALL
+  USING (false);
 
 -- Les participants d'une conversation peuvent lire ses messages
 CREATE POLICY participants_read_messages ON messages
@@ -188,6 +251,11 @@ CREATE POLICY participants_send_messages ON messages
       )
     )
   );
+
+-- Audit trigger pour messages
+CREATE TRIGGER audit_messages_trigger
+  AFTER INSERT OR UPDATE OR DELETE ON messages
+  FOR EACH ROW EXECUTE FUNCTION audit_log_trigger();
 
 -- Utilisateur de test (mot de passe: test1234)
 INSERT INTO users (email, password_hash, name)
