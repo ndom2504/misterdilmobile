@@ -10,15 +10,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-
-enum class PaymentStatus {
-    NOT_REQUIRED,
-    PENDING,
-    PAID,
-    FAILED
-}
 
 @Composable
 fun PaymentCard(
@@ -29,11 +23,23 @@ fun PaymentCard(
     modifier: Modifier = Modifier,
     isAdmin: Boolean = false
 ) {
-    val (statusText, statusColor, showPayButton) = when (status) {
-        PaymentStatus.NOT_REQUIRED -> "Non requis" to MaterialTheme.colorScheme.secondary to false
-        PaymentStatus.PENDING -> "En attente" to MaterialTheme.colorScheme.error to true
-        PaymentStatus.PAID -> "Payé" to MaterialTheme.colorScheme.primary to false
-        PaymentStatus.FAILED -> "Échoué" to MaterialTheme.colorScheme.error to true
+    val statusText = when (status) {
+        PaymentStatus.NOT_REQUIRED -> "Non requis"
+        PaymentStatus.PENDING -> "En attente"
+        PaymentStatus.PAID -> "Payé"
+        PaymentStatus.FAILED -> "Échoué"
+    }
+    val statusColor = when (status) {
+        PaymentStatus.NOT_REQUIRED -> MaterialTheme.colorScheme.secondary
+        PaymentStatus.PENDING -> MaterialTheme.colorScheme.error
+        PaymentStatus.PAID -> MaterialTheme.colorScheme.primary
+        PaymentStatus.FAILED -> MaterialTheme.colorScheme.error
+    }
+    val showPayButton = when (status) {
+        PaymentStatus.NOT_REQUIRED -> false
+        PaymentStatus.PENDING -> true
+        PaymentStatus.PAID -> false
+        PaymentStatus.FAILED -> true
     }
 
     ElevatedCard(
