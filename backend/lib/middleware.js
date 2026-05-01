@@ -1,4 +1,5 @@
 const { verifyToken } = require('./auth');
+const { sql } = require('./db');
 
 function withAuth(handler) {
   return async (req, res) => {
@@ -18,6 +19,16 @@ function withAuth(handler) {
     }
 
     req.user = decoded;
+
+    // Pass JWT claims to PostgreSQL for RLS policies
+    try {
+      await sql`SET LOCAL request.jwt.claims = ${JSON.stringify(decoded)}`;
+      await sql`SET LOCAL request.jwt.user_id = ${decoded.userId}`;
+    } catch (err) {
+      console.error('Failed to set JWT claims for RLS:', err);
+      // Continue anyway - middleware guards will still protect
+    }
+
     return handler(req, res);
   };
 }

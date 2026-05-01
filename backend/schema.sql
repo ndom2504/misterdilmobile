@@ -72,23 +72,17 @@ ALTER TABLE dossiers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 
--- Rôles PostgreSQL (mappés depuis JWT)
--- Ces rôles doivent être créés dans Neon et mappés via JWT claims
--- DO $$
--- BEGIN
---   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'admin_role') THEN
---     CREATE ROLE admin_role;
---   END IF;
---   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'user_role') THEN
---     CREATE ROLE user_role;
---   END IF;
---   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated_role') THEN
---     CREATE ROLE authenticated_role;
---   END IF;
--- END $$;
-
--- GRANT roles aux utilisateurs
--- GRANT admin_role, user_role, authenticated_role TO postgres;
+-- ==========================================
+-- RLS POLICIES BASED ON JWT CLAIMS
+-- ==========================================
+--
+-- Les policies utilisent current_setting('request.jwt.claims') pour extraire
+-- le rôle et l'ID utilisateur depuis le JWT. Le middleware doit configurer
+-- ces settings avant chaque requête.
+--
+-- Middleware required:
+-- SET LOCAL request.jwt.claims = '{"userId":"uuid","role":"admin"}';
+-- SET LOCAL request.jwt.user_id = 'uuid';
 
 -- ==========================================
 -- POLICIES: Dossiers
@@ -96,29 +90,40 @@ ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 
 -- Les admins peuvent lire tous les dossiers
 CREATE POLICY admins_read_all_dossiers ON dossiers
-  FOR SELECT TO admin_role
-  USING (true);
+  FOR ALL
+  USING (
+    (current_setting('request.jwt.claims', true)::jsonb ->> 'role') = 'admin'
+  );
 
 -- Les clients ne lisent que leurs dossiers
 CREATE POLICY users_read_own_dossiers ON dossiers
-  FOR SELECT TO user_role
-  USING (user_id = current_setting('jwt.user_id')::UUID);
+  FOR SELECT
+  USING (
+    (current_setting('request.jwt.claims', true)::jsonb ->> 'role') = 'user'
+    AND user_id = current_setting('request.jwt.user_id', true)::UUID
+  );
 
 -- Les clients peuvent créer des dossiers
 CREATE POLICY users_create_dossiers ON dossiers
-  FOR INSERT TO user_role
-  WITH CHECK (user_id = current_setting('jwt.user_id')::UUID);
+  FOR INSERT
+  WITH CHECK (
+    (current_setting('request.jwt.claims', true)::jsonb ->> 'role') = 'user'
+    AND user_id = current_setting('request.jwt.user_id', true)::UUID
+  );
 
 -- Les admins peuvent modifier tous les dossiers
 CREATE POLICY admins_update_dossiers ON dossiers
-  FOR UPDATE TO admin_role
-  USING (true);
+  FOR UPDATE
+  USING (
+    (current_setting('request.jwt.claims', true)::jsonb ->> 'role') = 'admin'
+  );
 
 -- Les clients peuvent modifier seulement si status != 'Soumis'
 CREATE POLICY users_update_own_dossiers ON dossiers
-  FOR UPDATE TO user_role
+  FOR UPDATE
   USING (
-    user_id = current_setting('jwt.user_id')::UUID
+    (current_setting('request.jwt.claims', true)::jsonb ->> 'role') = 'user'
+    AND user_id = current_setting('request.jwt.user_id', true)::UUID
     AND status != 'Soumis'
   );
 
@@ -128,18 +133,27 @@ CREATE POLICY users_update_own_dossiers ON dossiers
 
 -- Admins lisent toutes leurs conversations assignées
 CREATE POLICY admins_read_assigned_conversations ON conversations
-  FOR SELECT TO admin_role
-  USING (admin_id = current_setting('jwt.user_id')::UUID);
+  FOR SELECT
+  USING (
+    (current_setting('request.jwt.claims', true)::jsonb ->> 'role') = 'admin'
+    AND admin_id = current_setting('request.jwt.user_id', true)::UUID
+  );
 
 -- Clients lisent leurs conversations
 CREATE POLICY users_read_own_conversations ON conversations
-  FOR SELECT TO user_role
-  USING (user_id = current_setting('jwt.user_id')::UUID);
+  FOR SELECT
+  USING (
+    (current_setting('request.jwt.claims', true)::jsonb ->> 'role') = 'user'
+    AND user_id = current_setting('request.jwt.user_id', true)::UUID
+  );
 
 -- Les clients peuvent créer des conversations
 CREATE POLICY users_create_conversations ON conversations
-  FOR INSERT TO user_role
-  WITH CHECK (user_id = current_setting('jwt.user_id')::UUID);
+  FOR INSERT
+  WITH CHECK (
+    (current_setting('request.jwt.claims', true)::jsonb ->> 'role') = 'user'
+    AND user_id = current_setting('request.jwt.user_id', true)::UUID
+  );
 
 -- ==========================================
 -- POLICIES: Messages
@@ -147,23 +161,31 @@ CREATE POLICY users_create_conversations ON conversations
 
 -- Les participants d'une conversation peuvent lire ses messages
 CREATE POLICY participants_read_messages ON messages
-  FOR SELECT TO authenticated_role
+  FOR SELECT
   USING (
     EXISTS (
       SELECT 1 FROM conversations c
       WHERE c.id = conversation_id
-      AND (c.user_id = current_setting('jwt.user_id')::UUID OR c.admin_id = current_setting('jwt.user_id')::UUID)
+      AND (
+        (current_setting('request.jwt.claims', true)::jsonb ->> 'role') = 'admin'
+        OR c.user_id = current_setting('request.jwt.user_id', true)::UUID
+        OR c.admin_id = current_setting('request.jwt.user_id', true)::UUID
+      )
     )
   );
 
 -- Les participants peuvent envoyer des messages
 CREATE POLICY participants_send_messages ON messages
-  FOR INSERT TO authenticated_role
+  FOR INSERT
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM conversations c
       WHERE c.id = conversation_id
-      AND (c.user_id = current_setting('jwt.user_id')::UUID OR c.admin_id = current_setting('jwt.user_id')::UUID)
+      AND (
+        (current_setting('request.jwt.claims', true)::jsonb ->> 'role') = 'admin'
+        OR c.user_id = current_setting('request.jwt.user_id', true)::UUID
+        OR c.admin_id = current_setting('request.jwt.user_id', true)::UUID
+      )
     )
   );
 
