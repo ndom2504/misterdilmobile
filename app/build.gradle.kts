@@ -68,6 +68,10 @@ dependencies {
     // Stripe
     implementation(libs.stripe.android)
 
+    // Video (ExoPlayer)
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
+
     // Google Sign-In
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)

@@ -54,9 +54,11 @@ class MainActivity : ComponentActivity() {
             MIsterdilTheme {
                 val isAuthenticated by authViewModel.isAuthenticated.collectAsState()
                 val isAdmin by authViewModel.isAdmin.collectAsState()
+                var introFinished by rememberSaveable { mutableStateOf(false) }
                 var showRegister by rememberSaveable { mutableStateOf(false) }
 
                 when {
+                    !introFinished -> IntroScreen(onFinished = { introFinished = true })
                     isAuthenticated -> MIsterdilApp(
                         authViewModel, dossierViewModel, paymentViewModel, chatViewModel, isAdmin
                     )
