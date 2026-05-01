@@ -36,11 +36,29 @@ fun DocumentItem(
     modifier: Modifier = Modifier,
     showActions: Boolean = true
 ) {
-    val (icon, iconColor, bgColor, statusText) = when (status) {
-        DocumentStatus.NOT_PROVIDED -> Icons.Default.Upload to MaterialTheme.colorScheme.secondary to MaterialTheme.colorScheme.secondaryContainer to "Non fourni"
-        DocumentStatus.PENDING_VALIDATION -> Icons.Default.Warning to MaterialTheme.colorScheme.tertiary to MaterialTheme.colorScheme.tertiaryContainer to "En attente"
-        DocumentStatus.VALIDATED -> Icons.Default.CheckCircle to MaterialTheme.colorScheme.primary to MaterialTheme.colorScheme.primaryContainer to "Validé"
-        DocumentStatus.REJECTED -> Icons.Default.Error to MaterialTheme.colorScheme.error to MaterialTheme.colorScheme.errorContainer to "Rejeté"
+    val icon = when (status) {
+        DocumentStatus.NOT_PROVIDED -> Icons.Default.Upload
+        DocumentStatus.PENDING_VALIDATION -> Icons.Default.Warning
+        DocumentStatus.VALIDATED -> Icons.Default.CheckCircle
+        DocumentStatus.REJECTED -> Icons.Default.Error
+    }
+    val iconColor = when (status) {
+        DocumentStatus.NOT_PROVIDED -> MaterialTheme.colorScheme.secondary
+        DocumentStatus.PENDING_VALIDATION -> MaterialTheme.colorScheme.tertiary
+        DocumentStatus.VALIDATED -> MaterialTheme.colorScheme.primary
+        DocumentStatus.REJECTED -> MaterialTheme.colorScheme.error
+    }
+    val bgColor = when (status) {
+        DocumentStatus.NOT_PROVIDED -> MaterialTheme.colorScheme.secondaryContainer
+        DocumentStatus.PENDING_VALIDATION -> MaterialTheme.colorScheme.tertiaryContainer
+        DocumentStatus.VALIDATED -> MaterialTheme.colorScheme.primaryContainer
+        DocumentStatus.REJECTED -> MaterialTheme.colorScheme.errorContainer
+    }
+    val statusText = when (status) {
+        DocumentStatus.NOT_PROVIDED -> "Non fourni"
+        DocumentStatus.PENDING_VALIDATION -> "En attente"
+        DocumentStatus.VALIDATED -> "Validé"
+        DocumentStatus.REJECTED -> "Rejeté"
     }
 
     ElevatedCard(
