@@ -20,7 +20,7 @@ import com.example.misterdil.ui.viewmodels.DossierViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DossierScreen(viewModel: DossierViewModel, chatViewModel: ChatViewModel, modifier: Modifier = Modifier) {
+fun DossierScreen(viewModel: DossierViewModel, chatViewModel: ChatViewModel, modifier: Modifier = Modifier, isAdmin: Boolean = false) {
     var selectedFilter by remember { mutableStateOf("Tous") }
     val filters = listOf("Tous", "Entrée Express", "Permis d'études", "Plan d'affaires", "Regroupement familial", "Visa visiteur", "Résidence permanente")
     val dossiers by viewModel.dossiers.collectAsState()
@@ -42,7 +42,7 @@ fun DossierScreen(viewModel: DossierViewModel, chatViewModel: ChatViewModel, mod
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Mes Dossiers", fontWeight = FontWeight.Bold) },
+                    title = { Text(if (isAdmin) "Tous les dossiers" else "Mes Dossiers", fontWeight = FontWeight.Bold) },
                     actions = {
                         IconButton(onClick = { /* Search */ }) {
                             Icon(Icons.Default.Search, contentDescription = "Rechercher")
@@ -54,8 +54,10 @@ fun DossierScreen(viewModel: DossierViewModel, chatViewModel: ChatViewModel, mod
                 )
             },
             floatingActionButton = {
-                FloatingActionButton(onClick = { showCreate = true }) {
-                    Icon(Icons.Default.Add, contentDescription = "Nouveau dossier")
+                if (!isAdmin) {
+                    FloatingActionButton(onClick = { showCreate = true }) {
+                        Icon(Icons.Default.Add, contentDescription = "Nouveau dossier")
+                    }
                 }
             },
             modifier = modifier
@@ -106,12 +108,22 @@ fun DossierScreen(viewModel: DossierViewModel, chatViewModel: ChatViewModel, mod
             }
         }
     } else {
-        // Affichage du formulaire dynamique
-        DossierDetailScreen(
-            dossier = selectedDossier!!,
-            onBack = { selectedDossier = null },
-            modifier = modifier
-        )
+        // Affichage du détail selon le rôle
+        if (isAdmin) {
+            AdminDossierScreen(
+                dossier = selectedDossier!!,
+                onBack = { selectedDossier = null },
+                modifier = modifier,
+                dossierViewModel = viewModel
+            )
+        } else {
+            ClientDossierScreen(
+                dossier = selectedDossier!!,
+                onBack = { selectedDossier = null },
+                modifier = modifier,
+                dossierViewModel = viewModel
+            )
+        }
     }
 }
 

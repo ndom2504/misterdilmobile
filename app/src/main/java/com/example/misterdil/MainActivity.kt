@@ -146,7 +146,10 @@ fun MIsterdilApp(
                         )
                     }
                 }
-                AppDestinations.DOSSIER -> DossierScreen(dossierViewModel, chatViewModel, modifier)
+                AppDestinations.DOSSIER -> {
+                    val isAdmin by authViewModel.isAdmin.collectAsState()
+                    DossierScreen(dossierViewModel, chatViewModel, modifier, isAdmin)
+                }
                 AppDestinations.MESSAGERIE -> MessagerieScreen(
                     viewModel = chatViewModel,
                     modifier = modifier,
