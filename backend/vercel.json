@@ -1,5 +1,7 @@
 {
   "version": 2,
+  "buildCommand": "npm install",
+  "outputDirectory": ".",
   "headers": [
     {
       "source": "/api/(.*)",
@@ -9,5 +11,11 @@
         { "key": "Access-Control-Allow-Headers", "value": "Authorization,Content-Type" }
       ]
     }
-  ]
+  ],
+  "env": {
+    "DATABASE_URL": "@database-url",
+    "JWT_SECRET": "@jwt-secret",
+    "STRIPE_SECRET_KEY": "@stripe-secret-key",
+    "STRIPE_PUBLISHABLE_KEY": "@stripe-publishable-key"
+  }
 }
