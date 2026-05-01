@@ -110,14 +110,42 @@ fun MIsterdilApp(
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             val modifier = Modifier.padding(innerPadding)
             when (currentDestination) {
-                AppDestinations.HOME -> HomeScreen(dossierViewModel, modifier, onNavigateTo = { dest ->
-                    currentDestination = when (dest) {
-                        "dossier"    -> AppDestinations.DOSSIER
-                        "messagerie" -> AppDestinations.MESSAGERIE
-                        "paiement"   -> AppDestinations.PAIEMENT
-                        else         -> AppDestinations.HOME
+                AppDestinations.HOME -> {
+                    val userName by authViewModel.userName.collectAsState()
+                    if (isAdmin) {
+                        AdminHomeScreen(
+                            userName = userName,
+                            dossierViewModel = dossierViewModel,
+                            chatViewModel = chatViewModel,
+                            modifier = modifier,
+                            onNavigateTo = { dest ->
+                                currentDestination = when (dest) {
+                                    "dossier"    -> AppDestinations.DOSSIER
+                                    "messagerie" -> AppDestinations.MESSAGERIE
+                                    "paiement"   -> AppDestinations.PAIEMENT
+                                    else         -> AppDestinations.HOME
+                                }
+                            }
+                        )
+                    } else {
+                        ClientHomeScreen(
+                            authViewModel = authViewModel,
+                            dossierViewModel = dossierViewModel,
+                            userName = userName,
+                            modifier = modifier,
+                            onNavigateTo = { dest ->
+                                currentDestination = when (dest) {
+                                    "dossier"    -> AppDestinations.DOSSIER
+                                    "messagerie" -> AppDestinations.MESSAGERIE
+                                    "paiement"   -> AppDestinations.PAIEMENT
+                                    "profil"     -> AppDestinations.PROFIL
+                                    "create_dossier" -> AppDestinations.DOSSIER
+                                    else         -> AppDestinations.HOME
+                                }
+                            }
+                        )
                     }
-                })
+                }
                 AppDestinations.DOSSIER -> DossierScreen(dossierViewModel, chatViewModel, modifier)
                 AppDestinations.MESSAGERIE -> MessagerieScreen(
                     viewModel = chatViewModel,
