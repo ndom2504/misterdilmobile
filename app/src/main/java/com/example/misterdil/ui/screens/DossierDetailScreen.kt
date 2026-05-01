@@ -27,10 +27,8 @@ fun DossierDetailScreen(
 ) {
     val isEditable = dossier.status.lowercase() != "soumis"
 
-    // Dans une vraie app, ces champs viendraient d'une API ou d'une DB
-    val formFields = remember { mutableStateListOf<FormField>().apply {
-        addAll(getTemplateForType(dossier.type))
-    } }
+    // Formulaire vide pour l'instant - les données viendront de l'API
+    val formFields = remember { mutableStateListOf<FormField>() }
 
     Scaffold(
         topBar = {
@@ -186,49 +184,5 @@ fun DynamicField(field: FormField, onValueChange: (String) -> Unit, enabled: Boo
                 )
             }
         }
-    }
-}
-
-fun getTemplateForType(type: String): List<FormField> {
-    return when (type) {
-        "Études" -> listOf(
-            FormField(id = "ed_1", label = "Établissement visé", type = FieldType.TEXT),
-            FormField(id = "ed_2", label = "Niveau d'études actuel", type = FieldType.TEXT),
-            FormField(id = "ed_3", label = "Date de début souhaitée", type = FieldType.DATE),
-            FormField(id = "ed_4", label = "Budget disponible ($)", type = FieldType.NUMBER)
-        )
-        "Entrée express" -> listOf(
-            FormField(id = "ee_1", label = "Score CRS estimé", type = FieldType.NUMBER),
-            FormField(id = "ee_2", label = "Test de langue (Niveaux)", type = FieldType.TEXT),
-            FormField(id = "ee_3", label = "Années d'expérience", type = FieldType.NUMBER),
-            FormField(id = "ee_4", label = "Profession (CNP)", type = FieldType.TEXT)
-        )
-        "Plan d'affaires" -> listOf(
-            FormField(id = "biz_1", label = "Nom de l'entreprise", type = FieldType.TEXT),
-            FormField(id = "biz_2", label = "Secteur d'activité", type = FieldType.TEXT),
-            FormField(id = "biz_3", label = "Investissement prévu ($)", type = FieldType.NUMBER),
-            FormField(id = "biz_4", label = "Nombre d'emplois créés", type = FieldType.NUMBER)
-        )
-        "Regroupement familial" -> listOf(
-            FormField(id = "rf_1", label = "Nom du répondant", type = FieldType.TEXT),
-            FormField(id = "rf_2", label = "Lien de parenté", type = FieldType.TEXT),
-            FormField(id = "rf_3", label = "Statut du répondant au Canada", type = FieldType.TEXT),
-            FormField(id = "rf_4", label = "Date de naissance du répondant", type = FieldType.DATE)
-        )
-        "Visa visiteur" -> listOf(
-            FormField(id = "vv_1", label = "But de la visite", type = FieldType.TEXT),
-            FormField(id = "vv_2", label = "Durée prévue du séjour (jours)", type = FieldType.NUMBER),
-            FormField(id = "vv_3", label = "Province de destination", type = FieldType.TEXT),
-            FormField(id = "vv_4", label = "Fonds disponibles ($)", type = FieldType.NUMBER)
-        )
-        "Résidence permanente" -> listOf(
-            FormField(id = "rp_1", label = "Catégorie visée", type = FieldType.TEXT),
-            FormField(id = "rp_2", label = "Années de résidence au Canada", type = FieldType.NUMBER),
-            FormField(id = "rp_3", label = "Province de résidence", type = FieldType.TEXT),
-            FormField(id = "rp_4", label = "Score IELTS/TEF", type = FieldType.TEXT)
-        )
-        else -> listOf(
-            FormField(id = "gen_1", label = "Commentaires additionnels", type = FieldType.TEXT, required = false)
-        )
     }
 }
