@@ -22,7 +22,10 @@ sealed class ConversationCreateState {
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ChatViewModel(private val repository: ChatRepository) : ViewModel() {
+class ChatViewModel(
+    private val repository: ChatRepository,
+    val dossierRepository: DossierRepository
+) : ViewModel() {
 
     private val _convCreateState = MutableStateFlow<ConversationCreateState>(ConversationCreateState.Idle)
     val convCreateState: StateFlow<ConversationCreateState> = _convCreateState
@@ -94,11 +97,14 @@ class ChatViewModel(private val repository: ChatRepository) : ViewModel() {
     }
 }
 
-class ChatViewModelFactory(private val repository: ChatRepository) : ViewModelProvider.Factory {
+class ChatViewModelFactory(
+    private val repository: ChatRepository,
+    private val dossierRepository: DossierRepository
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ChatViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return ChatViewModel(repository) as T
+            return ChatViewModel(repository, dossierRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

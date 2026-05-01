@@ -44,7 +44,10 @@ class MainActivity : ComponentActivity() {
     }
 
     private val chatViewModel: ChatViewModel by viewModels {
-        ChatViewModelFactory((application as MisterdilApplication).chatRepository)
+        ChatViewModelFactory(
+            (application as MisterdilApplication).chatRepository,
+            (application as MisterdilApplication).repository
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

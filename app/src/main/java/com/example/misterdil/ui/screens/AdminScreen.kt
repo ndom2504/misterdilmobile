@@ -46,10 +46,19 @@ fun AdminScreen(
     val conversations by chatViewModel.conversations.collectAsState()
     val messages by chatViewModel.messages.collectAsState()
     var selectedConvId by remember { mutableStateOf<String?>(null) }
+    var showProfile by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { chatViewModel.refreshConversations() }
 
-    if (selectedConvId == null) {
+    if (showProfile) {
+        ProfileScreen(
+            repository = chatViewModel.repository,
+            currentName = userName ?: "Admin",
+            currentAvatarUrl = null,
+            onBack = { showProfile = false },
+            modifier = modifier
+        )
+    } else if (selectedConvId == null) {
         AdminDashboard(
             userName = userName,
             conversations = conversations,
@@ -57,7 +66,8 @@ fun AdminScreen(
             onSelectClient = { id ->
                 selectedConvId = id
                 chatViewModel.setConversation(id)
-            }
+            },
+            onProfileClick = { showProfile = true }
         )
     } else {
         val conv = conversations.find { it.id == selectedConvId }
@@ -78,8 +88,9 @@ fun AdminScreen(
 private fun AdminDashboard(
     userName: String?,
     conversations: List<Conversation>,
-    modifier: Modifier,
-    onSelectClient: (String) -> Unit
+    onSelectClient: (String) -> Unit,
+    onProfileClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     var statusFilter by remember { mutableStateOf("Tous") }
     var typeFilter by remember { mutableStateOf("Tous") }
@@ -100,7 +111,14 @@ private fun AdminDashboard(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Espace Conseiller", fontWeight = FontWeight.Bold) })
+            TopAppBar(
+                title = { Text("Espace Conseiller", fontWeight = FontWeight.Bold) },
+                actions = {
+                    IconButton(onClick = onProfileClick) {
+                        Icon(Icons.Default.Person, contentDescription = "Profil")
+                    }
+                }
+            )
         },
         modifier = modifier
     ) { padding ->
