@@ -9,7 +9,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.automirrored.filled.ChatBubble
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Person
@@ -326,7 +325,7 @@ fun RecentMessagesSection(onNavigateTo: (String) -> Unit) {
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    Icons.AutoMirrored.Filled.ChatBubble,
+                    Icons.AutoMirrored.Filled.Chat,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSecondaryContainer,
                     modifier = Modifier.size(20.dp)
