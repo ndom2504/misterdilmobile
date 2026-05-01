@@ -7,8 +7,10 @@ module.exports = withAuth(async (req, res) => {
       const isAdmin = req.user.role === 'admin';
       const conversations = isAdmin
         ? await sql`
-            SELECT id, client_name, project_name, last_message, time, unread_count
-            FROM conversations WHERE admin_id = ${req.user.userId} ORDER BY created_at DESC`
+            SELECT c.id, u.name AS client_name, c.project_name, c.last_message, c.time, c.unread_count
+            FROM conversations c
+            JOIN users u ON u.id = c.user_id
+            WHERE c.admin_id = ${req.user.userId} ORDER BY c.created_at DESC`
         : await sql`
             SELECT id, client_name, project_name, last_message, time, unread_count
             FROM conversations WHERE user_id = ${req.user.userId} ORDER BY created_at DESC`;

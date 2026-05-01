@@ -119,10 +119,14 @@ fun MIsterdilApp(
                     }
                 })
                 AppDestinations.DOSSIER -> DossierScreen(dossierViewModel, chatViewModel, modifier)
-                AppDestinations.MESSAGERIE -> MessagerieScreen(chatViewModel, modifier)
+                AppDestinations.MESSAGERIE -> MessagerieScreen(
+                    viewModel = chatViewModel,
+                    modifier = modifier,
+                    onNavigateToPaiement = { currentDestination = AppDestinations.PAIEMENT }
+                )
                 AppDestinations.PAIEMENT -> PaiementScreen(paymentViewModel, modifier)
                 AppDestinations.PROFIL -> ProfilScreen(authViewModel, modifier)
-                AppDestinations.ADMIN -> AdminScreen(authViewModel, modifier)
+                AppDestinations.ADMIN -> AdminScreen(authViewModel, chatViewModel, modifier)
             }
         }
     }

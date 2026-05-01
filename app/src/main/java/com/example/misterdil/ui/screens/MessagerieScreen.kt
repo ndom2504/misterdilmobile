@@ -35,7 +35,7 @@ import com.example.misterdil.ui.viewmodels.ChatViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MessagerieScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
+fun MessagerieScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier, onNavigateToPaiement: (() -> Unit)? = null) {
     var selectedConversationId by remember { mutableStateOf<String?>(null) }
     val conversations by viewModel.conversations.collectAsState()
     val messages by viewModel.messages.collectAsState()
@@ -88,6 +88,7 @@ fun MessagerieScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
             messages = messages,
             onSendMessage = { viewModel.sendMessage(it) },
             onBack = { selectedConversationId = null },
+            onNavigateToPaiement = onNavigateToPaiement,
             modifier = modifier
         )
     }
@@ -111,6 +112,7 @@ fun ChatDetailScreen(
     messages: List<Message>,
     onSendMessage: (String) -> Unit,
     onBack: () -> Unit,
+    onNavigateToPaiement: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var textState by remember { mutableStateOf("") }
@@ -189,17 +191,25 @@ fun ChatDetailScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(messages.reversed()) { message ->
-                MessageBubble(message)
+                MessageBubble(message, onPayRequest = onNavigateToPaiement)
             }
         }
     }
 }
 
 @Composable
-fun MessageBubble(message: Message) {
+fun MessageBubble(message: Message, onPayRequest: (() -> Unit)? = null) {
     if (message.text.startsWith(FILE_MSG_PREFIX)) {
         val fileName = message.text.removePrefix(FILE_MSG_PREFIX)
         FileMessageBubble(fileName = fileName, isFromMe = message.isFromMe)
+        return
+    }
+    if (message.text.startsWith(PAYMENT_MSG_PREFIX)) {
+        val raw = message.text.removePrefix(PAYMENT_MSG_PREFIX)
+        val parts = raw.split(":")
+        val amount = parts.getOrNull(0) ?: "0"
+        val desc = parts.getOrNull(1) ?: "Frais de service"
+        PaymentRequestBubble(amount = amount, description = desc, isFromMe = message.isFromMe, onPay = onPayRequest)
         return
     }
 
@@ -249,6 +259,42 @@ fun FileMessageBubble(fileName: String, isFromMe: Boolean) {
                 Column {
                     Text(fileName, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text("Fichier joint", fontSize = 11.sp, color = contentColor.copy(alpha = 0.7f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PaymentRequestBubble(amount: String, description: String, isFromMe: Boolean, onPay: (() -> Unit)?) {
+    val alignment = if (isFromMe) Alignment.End else Alignment.Start
+    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = alignment) {
+        ElevatedCard(
+            modifier = Modifier.widthIn(max = 260.dp),
+            colors = CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer
+            )
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Payment, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Demande de paiement", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                }
+                Spacer(Modifier.height(8.dp))
+                Text("$$amount CAD", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.tertiary)
+                Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                if (!isFromMe && onPay != null) {
+                    Spacer(Modifier.height(12.dp))
+                    Button(
+                        onClick = onPay,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
+                    ) {
+                        Icon(Icons.Default.Payment, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Payer maintenant", fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }
