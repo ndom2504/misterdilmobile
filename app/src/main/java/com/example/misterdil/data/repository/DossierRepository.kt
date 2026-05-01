@@ -5,6 +5,7 @@ import com.example.misterdil.data.models.Dossier
 import com.example.misterdil.data.remote.AdminProfile
 import com.example.misterdil.data.remote.CreateDossierRequest
 import com.example.misterdil.data.remote.DossierApiService
+import com.example.misterdil.data.remote.UpdateProfileRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -38,6 +39,12 @@ class DossierRepository(
     suspend fun getAdmins(): List<AdminProfile> {
         return withContext(Dispatchers.IO) {
             apiService.getAdmins()
+        }
+    }
+
+    suspend fun updateProfile(name: String? = null, avatar_url: String? = null): AdminProfile {
+        return withContext(Dispatchers.IO) {
+            apiService.updateProfile(UpdateProfileRequest(name, avatar_url))
         }
     }
 }

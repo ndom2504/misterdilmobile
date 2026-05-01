@@ -20,6 +20,11 @@ data class CreateDossierRequest(
     val formData: Map<String, String> = emptyMap()
 )
 
+data class UpdateProfileRequest(
+    val name: String? = null,
+    val avatar_url: String? = null
+)
+
 interface DossierApiService {
     @GET("dossiers")
     suspend fun getDossiers(): List<Dossier>
@@ -32,6 +37,9 @@ interface DossierApiService {
 
     @GET("admins")
     suspend fun getAdmins(): List<AdminProfile>
+
+    @POST("profile/update")
+    suspend fun updateProfile(@Body request: UpdateProfileRequest): AdminProfile
 
     companion object {
         val BASE_URL: String = "https://backend-chi-olive-77.vercel.app/api/v1/"
