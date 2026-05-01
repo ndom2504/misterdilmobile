@@ -24,22 +24,22 @@ fun PaymentCard(
     isAdmin: Boolean = false
 ) {
     val statusText = when (status) {
-        PaymentStatus.NOT_REQUIRED -> "Non requis"
         PaymentStatus.PENDING -> "En attente"
         PaymentStatus.PAID -> "Payé"
         PaymentStatus.FAILED -> "Échoué"
+        PaymentStatus.NOT_GENERATED -> "Non généré"
     }
     val statusColor = when (status) {
-        PaymentStatus.NOT_REQUIRED -> MaterialTheme.colorScheme.secondary
         PaymentStatus.PENDING -> MaterialTheme.colorScheme.error
         PaymentStatus.PAID -> MaterialTheme.colorScheme.primary
         PaymentStatus.FAILED -> MaterialTheme.colorScheme.error
+        PaymentStatus.NOT_GENERATED -> MaterialTheme.colorScheme.secondary
     }
     val showPayButton = when (status) {
-        PaymentStatus.NOT_REQUIRED -> false
         PaymentStatus.PENDING -> true
         PaymentStatus.PAID -> false
         PaymentStatus.FAILED -> true
+        PaymentStatus.NOT_GENERATED -> false
     }
 
     ElevatedCard(
