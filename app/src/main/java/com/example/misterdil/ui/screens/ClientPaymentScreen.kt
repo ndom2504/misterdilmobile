@@ -26,8 +26,6 @@ fun ClientPaymentScreen(
 ) {
     var showConfirmation by remember { mutableStateOf(false) }
     var transactionId by remember { mutableStateOf("") }
-    val configuration = LocalConfiguration.current
-    val isTablet = configuration.screenWidthDp >= 600
 
     Scaffold(
         topBar = {
