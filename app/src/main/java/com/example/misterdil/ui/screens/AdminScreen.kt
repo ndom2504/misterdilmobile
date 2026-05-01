@@ -191,7 +191,7 @@ private fun AdminDashboard(
                     }
                 }
             } else {
-                items(filteredConversations) { conv ->
+                lazyItems(filteredConversations) { conv ->
                     ClientCard(conv = conv, onClick = { onSelectClient(conv.id) })
                 }
             }
