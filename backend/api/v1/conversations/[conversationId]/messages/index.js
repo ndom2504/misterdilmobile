@@ -1,6 +1,6 @@
-const { sql } = require('../../../../lib/db');
-const { withAuth } = require('../../../../lib/middleware');
-const { guardConversationMember } = require('../../../../lib/guards');
+const { sql } = require('../../../../../lib/db');
+const { withAuth } = require('../../../../../lib/middleware');
+const { guardConversationMember } = require('../../../../../lib/guards');
 
 module.exports = withAuth(async (req, res) => {
   const { conversationId } = req.params;

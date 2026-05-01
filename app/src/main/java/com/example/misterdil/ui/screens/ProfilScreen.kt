@@ -4,6 +4,8 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import java.io.File
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -32,11 +34,18 @@ fun ProfilScreen(viewModel: AuthViewModel, modifier: Modifier = Modifier) {
     val userName  by viewModel.userName.collectAsState()
     val userEmail by viewModel.userEmail.collectAsState()
     val photoUri  by viewModel.photoUri.collectAsState()
+    val context = LocalContext.current
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
-        uri?.let { viewModel.updatePhotoUri(it.toString()) }
+        uri?.let {
+            val dest = File(context.filesDir, "avatar_profil.jpg")
+            context.contentResolver.openInputStream(it)?.use { input ->
+                dest.outputStream().use { out -> input.copyTo(out) }
+            }
+            viewModel.updatePhotoUri(Uri.fromFile(dest).toString())
+        }
     }
 
     Scaffold(

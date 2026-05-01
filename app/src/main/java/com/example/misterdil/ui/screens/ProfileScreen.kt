@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.misterdil.data.repository.DossierRepository
 import kotlinx.coroutines.launch
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,9 +50,12 @@ fun ProfileScreen(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
+            val dest = File(context.filesDir, "avatar_profile.jpg")
+            context.contentResolver.openInputStream(it)?.use { input ->
+                dest.outputStream().use { out -> input.copyTo(out) }
+            }
             selectedImageUri = it
-            // Pour l'instant, on utilise l'URI locale. Dans une vraie app, il faudrait uploader sur un serveur
-            avatarUrl = it.toString()
+            avatarUrl = Uri.fromFile(dest).toString()
         }
     }
 
