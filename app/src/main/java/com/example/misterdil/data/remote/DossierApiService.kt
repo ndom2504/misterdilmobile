@@ -33,6 +33,6 @@ interface DossierApiService {
     suspend fun getAdmins(): List<AdminProfile>
 
     companion object {
-        const val BASE_URL = BuildConfig.API_BASE_URL ?: "https://backend-chi-olive-77.vercel.app/api/v1/"
+        val BASE_URL: String = BuildConfig.API_BASE_URL ?: "https://backend-chi-olive-77.vercel.app/api/v1/"
     }
 }
