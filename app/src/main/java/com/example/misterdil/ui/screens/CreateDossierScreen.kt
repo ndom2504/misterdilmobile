@@ -99,16 +99,6 @@ fun CreateDossierScreen(
     var autosaveTrigger by remember { mutableStateOf(0) }
     var showAdvisorSelection by remember { mutableStateOf(false) }
 
-    // Calculer le score CRS pour Entrée Express quand les données changent
-    LaunchedEffect(formFields.size, selectedType) {
-        if (selectedType == "Entrée Express" && formFields.isNotEmpty()) {
-            val result = CRSCalculator.calculateCRS(formFields.toMap())
-            formFields["crs_score"] = result.totalScore.toString()
-            formFields["eligible_program"] = result.program
-            formFields["eligibility_status"] = CRSCalculator.getEligibilityMessage(result)
-        }
-    }
-
     // Autosave: sauvegarde progressive avec délai (debouncing)
     LaunchedEffect(autosaveTrigger) {
         if (formFields.isNotEmpty()) {

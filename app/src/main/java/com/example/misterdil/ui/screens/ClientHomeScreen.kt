@@ -351,18 +351,15 @@ fun RecentMessagesSection(onNavigateTo: (String) -> Unit) {
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "Dernier message",
+                    "Messagerie",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    "Votre conseiller vous a répondu",
+                    "Accéder à vos conversations",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold
                 )
-            }
-            Badge(containerColor = MaterialTheme.colorScheme.error) {
-                Text("1", style = MaterialTheme.typography.labelSmall)
             }
         }
     }

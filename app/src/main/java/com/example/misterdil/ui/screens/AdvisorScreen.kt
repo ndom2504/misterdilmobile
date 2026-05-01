@@ -13,6 +13,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,6 +37,10 @@ fun AdvisorScreen(
     modifier: Modifier = Modifier
 ) {
     val admins by viewModel.admins.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadAdmins()
+    }
 
     Scaffold(
         topBar = {
@@ -65,11 +70,22 @@ fun AdvisorScreen(
                 )
             }
             
-            items(admins) { admin ->
-                AdvisorCard(
-                    admin = admin,
-                    onClick = { onAdvisorSelected(admin) }
-                )
+            if (admins.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            } else {
+                items(admins) { admin ->
+                    AdvisorCard(
+                        admin = admin,
+                        onClick = { onAdvisorSelected(admin) }
+                    )
+                }
             }
         }
     }

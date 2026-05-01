@@ -68,16 +68,16 @@ fun ClientPaymentScreen(
                         verticalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
                         DossierPaymentHeader(
-                            dossierType = "Permis d'études",
-                            dossierId = "DOS-2024-001",
-                            dossierStatus = "En cours"
+                            dossierType = "Dossier d'immigration",
+                            dossierId = "",
+                            dossierStatus = "En attente"
                         )
                         PaymentSummaryCard(
-                            dossierType = "Permis d'études",
-                            dossierId = "DOS-2024-001",
+                            dossierType = "Dossier d'immigration",
+                            dossierId = "",
                             description = "Frais de traitement du dossier",
-                            amount = "500 €",
-                            dueDate = "30 avril 2024"
+                            amount = "500 CAD",
+                            dueDate = ""
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -86,7 +86,7 @@ fun ClientPaymentScreen(
                             PaymentStatusBadge(status = paymentStatus)
                         }
                         StripeButton(
-                            amount = "500 €",
+                            amount = "500 CAD",
                             enabled = paymentStatus == PaymentStatus.PENDING,
                             onClick = {
                                 paymentStatus = PaymentStatus.PAID
@@ -132,19 +132,19 @@ fun ClientPaymentScreen(
                 ) {
                     item {
                         DossierPaymentHeader(
-                            dossierType = "Permis d'études",
-                            dossierId = "DOS-2024-001",
-                            dossierStatus = "En cours"
+                            dossierType = "Dossier d'immigration",
+                            dossierId = "",
+                            dossierStatus = "En attente"
                         )
                     }
 
                     item {
                         PaymentSummaryCard(
-                            dossierType = "Permis d'études",
-                            dossierId = "DOS-2024-001",
+                            dossierType = "Dossier d'immigration",
+                            dossierId = "",
                             description = "Frais de traitement du dossier",
-                            amount = "500 €",
-                            dueDate = "30 avril 2024"
+                            amount = "500 CAD",
+                            dueDate = ""
                         )
                     }
 
@@ -159,7 +159,7 @@ fun ClientPaymentScreen(
 
                     item {
                         StripeButton(
-                            amount = "500 €",
+                            amount = "500 CAD",
                             enabled = paymentStatus == PaymentStatus.PENDING,
                             onClick = {
                                 paymentStatus = PaymentStatus.PAID

@@ -33,9 +33,11 @@ fun ClientProfileScreen(
     var showEditProfileDialog by remember { mutableStateOf(false) }
     var showChangePasswordDialog by remember { mutableStateOf(false) }
     var showDeleteAccountDialog by remember { mutableStateOf(false) }
-    var userName by remember { mutableStateOf("Jean Dupont") }
-    var userPhone by remember { mutableStateOf("+33 6 12 34 56 78") }
-    var userLanguage by remember { mutableStateOf("Français") }
+    val authName by authViewModel.userName.collectAsState()
+    val authEmail by authViewModel.userEmail.collectAsState()
+    var userName by remember(authName) { mutableStateOf(authName ?: "") }
+    var userPhone by remember { mutableStateOf("") }
+    var userLanguage by remember { mutableStateOf("") }
     val configuration = LocalConfiguration.current
     val isTablet = configuration.screenWidthDp >= 600
 
@@ -80,21 +82,21 @@ fun ClientProfileScreen(
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Column {
                                     Text(
-                                        userName,
+                                        authName ?: "",
                                         style = MaterialTheme.typography.titleLarge,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
-                                        "client@example.com",
+                                        authEmail ?: "",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.secondary
                                     )
                                 }
                             }
                             Spacer(modifier = Modifier.height(16.dp))
-                            ProfileInfoRow(label = "Téléphone", value = userPhone)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            ProfileInfoRow(label = "Langue", value = userLanguage)
+                            if (userPhone.isNotBlank()) ProfileInfoRow(label = "Téléphone", value = userPhone)
+                            if (userPhone.isNotBlank()) Spacer(modifier = Modifier.height(8.dp))
+                            if (userLanguage.isNotBlank()) ProfileInfoRow(label = "Langue", value = userLanguage)
                             Spacer(modifier = Modifier.height(12.dp))
                             OutlinedButton(
                                 onClick = { showEditProfileDialog = true },
@@ -261,16 +263,16 @@ fun ClientProfileScreen(
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
-                                        "client@example.com",
+                                        authEmail ?: "",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.secondary
                                     )
                                 }
                             }
                             Spacer(modifier = Modifier.height(16.dp))
-                            ProfileInfoRow(label = "Téléphone", value = userPhone)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            ProfileInfoRow(label = "Langue", value = userLanguage)
+                            if (userPhone.isNotBlank()) ProfileInfoRow(label = "Téléphone", value = userPhone)
+                            if (userPhone.isNotBlank()) Spacer(modifier = Modifier.height(8.dp))
+                            if (userLanguage.isNotBlank()) ProfileInfoRow(label = "Langue", value = userLanguage)
                             Spacer(modifier = Modifier.height(12.dp))
                             OutlinedButton(
                                 onClick = { showEditProfileDialog = true },
@@ -428,7 +430,7 @@ fun ClientProfileScreen(
     if (showEditProfileDialog) {
         EditProfileDialog(
             currentName = userName,
-            currentEmail = "client@example.com",
+            currentEmail = authEmail ?: "",
             currentPhone = userPhone,
             currentLanguage = userLanguage,
             onDismiss = { showEditProfileDialog = false },
