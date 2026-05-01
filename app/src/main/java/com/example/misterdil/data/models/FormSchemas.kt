@@ -668,11 +668,429 @@ object FormSchemas {
             requiredDocumentsSection
         )
     )
+
+    // ==================== PLAN D'AFFAIRES ====================
+
+    private val entrepreneurialProfileSection = FormSection(
+        id = "entrepreneurial_profile",
+        title = "Profil entrepreneurial",
+        description = "Votre expérience et compétences entrepreneuriales",
+        order = 5,
+        fields = listOf(
+            FormField(
+                id = "entrepreneurial_years",
+                label = "Années d'expérience entrepreneuriale",
+                type = FieldType.NUMBER,
+                required = true,
+                min = 0,
+                max = 50
+            ),
+            FormField(
+                id = "business_sectors",
+                label = "Secteur(s) d'expérience",
+                type = FieldType.TEXT,
+                required = true,
+                placeholder = "Ex: Restauration, Technologie, Commerce..."
+            ),
+            FormField(
+                id = "previous_companies",
+                label = "Avez-vous créé des entreprises précédemment?",
+                type = FieldType.CHECKBOX,
+                required = true
+            ),
+            FormField(
+                id = "previous_company_name",
+                label = "Nom de l'entreprise précédente",
+                type = FieldType.TEXT,
+                required = false,
+                visibleIf = ConditionalRule("previous_companies", "equals", "true"),
+                placeholder = "Nom de l'entreprise"
+            ),
+            FormField(
+                id = "previous_company_country",
+                label = "Pays de l'entreprise",
+                type = FieldType.DROPDOWN,
+                required = false,
+                visibleIf = ConditionalRule("previous_companies", "equals", "true"),
+                options = listOf("France", "Maroc", "Algérie", "Tunisie", "Sénégal", "Côte d'Ivoire", "Canada", "Autre")
+            ),
+            FormField(
+                id = "previous_company_activity",
+                label = "Activité de l'entreprise",
+                type = FieldType.TEXT,
+                required = false,
+                visibleIf = ConditionalRule("previous_companies", "equals", "true"),
+                placeholder = "Description de l'activité"
+            ),
+            FormField(
+                id = "previous_company_result",
+                label = "Résultat de l'entreprise",
+                type = FieldType.DROPDOWN,
+                required = false,
+                visibleIf = ConditionalRule("previous_companies", "equals", "true"),
+                options = listOf("Active", "Fermée", "Vendue")
+            ),
+            FormField(
+                id = "current_position",
+                label = "Poste actuel ou dernier poste",
+                type = FieldType.TEXT,
+                required = true,
+                placeholder = "Votre titre actuel"
+            ),
+            FormField(
+                id = "key_skills",
+                label = "Compétences clés",
+                type = FieldType.TEXT_AREA,
+                required = true,
+                placeholder = "Vos principales compétences (3-5 points clés)",
+                maxLength = 500
+            )
+        )
+    )
+
+    private val projectDescriptionSection = FormSection(
+        id = "project_description",
+        title = "Description du projet d'affaires",
+        description = "Présentation de votre projet",
+        order = 6,
+        fields = listOf(
+            FormField(
+                id = "project_type",
+                label = "Type de projet",
+                type = FieldType.DROPDOWN,
+                required = true,
+                options = listOf("Création", "Reprise", "Franchise")
+            ),
+            FormField(
+                id = "business_sector",
+                label = "Secteur d'activité",
+                type = FieldType.TEXT,
+                required = true,
+                placeholder = "Ex: Restauration, Commerce de détail, Services..."
+            ),
+            FormField(
+                id = "planned_location",
+                label = "Localisation prévue",
+                type = FieldType.TEXT,
+                required = true,
+                placeholder = "Province / Ville souhaitée"
+            ),
+            FormField(
+                id = "project_description",
+                label = "Description du projet",
+                type = FieldType.TEXT_AREA,
+                required = true,
+                placeholder = "Décrivez votre projet en 3-5 lignes",
+                maxLength = 500
+            ),
+            FormField(
+                id = "project_status",
+                label = "Statut actuel du projet",
+                type = FieldType.DROPDOWN,
+                required = true,
+                options = listOf("Idée", "En cours", "Entreprise existante")
+            )
+        )
+    )
+
+    private val marketSection = FormSection(
+        id = "market",
+        title = "Marché & Clientèle",
+        description = "Analyse de votre marché cible",
+        order = 7,
+        fields = listOf(
+            FormField(
+                id = "target_clients",
+                label = "Clients ciblés",
+                type = FieldType.DROPDOWN,
+                required = true,
+                options = listOf("Particuliers", "Entreprises", "Les deux")
+            ),
+            FormField(
+                id = "problem_solved",
+                label = "Problème résolu par votre projet",
+                type = FieldType.TEXT_AREA,
+                required = true,
+                placeholder = "Quel besoin répondez-vous? (3-5 lignes)",
+                maxLength = 500
+            ),
+            FormField(
+                id = "has_competitors",
+                label = "Avez-vous identifié des concurrents?",
+                type = FieldType.CHECKBOX,
+                required = true
+            ),
+            FormField(
+                id = "competitors_details",
+                label = "Quels sont vos concurrents?",
+                type = FieldType.TEXT_AREA,
+                required = false,
+                visibleIf = ConditionalRule("has_competitors", "equals", "true"),
+                placeholder = "Listez vos principaux concurrents",
+                maxLength = 300
+            ),
+            FormField(
+                id = "competitive_advantage",
+                label = "Avantage concurrentiel principal",
+                type = FieldType.TEXT_AREA,
+                required = true,
+                placeholder = "Qu'est-ce qui vous différencie? (3-5 lignes)",
+                maxLength = 500
+            )
+        )
+    )
+
+    private val economicModelSection = FormSection(
+        id = "economic_model",
+        title = "Modèle économique",
+        description = "Comment votre entreprise génère des revenus",
+        order = 8,
+        fields = listOf(
+            FormField(
+                id = "revenue_source",
+                label = "Source de revenus principale",
+                type = FieldType.TEXT,
+                required = true,
+                placeholder = "Ex: Vente de produits, Services, Abonnements..."
+            ),
+            FormField(
+                id = "average_price",
+                label = "Prix moyen d'un produit/service (CAD)",
+                type = FieldType.NUMBER,
+                required = true,
+                placeholder = "Montant en dollars canadiens"
+            ),
+            FormField(
+                id = "sales_frequency",
+                label = "Fréquence des ventes",
+                type = FieldType.DROPDOWN,
+                required = true,
+                options = listOf("Quotidienne", "Hebdomadaire", "Mensuelle", "Saisonnière", "Autre")
+            ),
+            FormField(
+                id = "main_expenses",
+                label = "Charges principales",
+                type = FieldType.MULTI_SELECT,
+                required = true,
+                options = listOf("Loyer", "Salaires", "Fournisseurs", "Marketing", "Équipement", "Autre")
+            ),
+            FormField(
+                id = "break_even",
+                label = "Seuil de rentabilité estimé",
+                type = FieldType.DROPDOWN,
+                required = true,
+                options = listOf("< 1 an", "1-2 ans", "> 2 ans")
+            )
+        )
+    )
+
+    private val investmentSection = FormSection(
+        id = "investment",
+        title = "Investissement & Financement",
+        description = "Plan de financement de votre projet",
+        order = 9,
+        fields = listOf(
+            FormField(
+                id = "total_investment",
+                label = "Investissement total prévu (CAD)",
+                type = FieldType.NUMBER,
+                required = true,
+                placeholder = "Montant total en dollars canadiens"
+            ),
+            FormField(
+                id = "available_funds",
+                label = "Fonds propres disponibles (CAD)",
+                type = FieldType.NUMBER,
+                required = true,
+                placeholder = "Montant en dollars canadiens"
+            ),
+            FormField(
+                id = "funds_source",
+                label = "Source des fonds",
+                type = FieldType.DROPDOWN,
+                required = true,
+                options = listOf("Personnel", "Partenaires", "Prêt", "Combinaison")
+            ),
+            FormField(
+                id = "personal_contribution",
+                label = "Apport personnel (%)",
+                type = FieldType.NUMBER,
+                required = true,
+                min = 0,
+                max = 100,
+                placeholder = "Pourcentage de votre apport"
+            ),
+            FormField(
+                id = "has_proofs",
+                label = "Avez-vous des preuves financières disponibles?",
+                type = FieldType.CHECKBOX,
+                required = true
+            )
+        )
+    )
+
+    private val jobsSection = FormSection(
+        id = "jobs",
+        title = "Emplois & Impact économique",
+        description = "Impact économique de votre projet",
+        order = 10,
+        fields = listOf(
+            FormField(
+                id = "jobs_created",
+                label = "Nombre d'emplois créés",
+                type = FieldType.DROPDOWN,
+                required = true,
+                options = listOf("0", "1-2", "3-5", "6-10", "10+")
+            ),
+            FormField(
+                id = "job_types",
+                label = "Type d'emplois",
+                type = FieldType.TEXT,
+                required = true,
+                placeholder = "Ex: Commercial, Technique, Administratif..."
+            ),
+            FormField(
+                id = "local_impact",
+                label = "Impact local estimé",
+                type = FieldType.DROPDOWN,
+                required = true,
+                options = listOf("Économique", "Social", "Les deux")
+            ),
+            FormField(
+                id = "local_partnerships",
+                label = "Partenariats locaux envisagés",
+                type = FieldType.CHECKBOX,
+                required = true
+            )
+        )
+    )
+
+    private val timelineSection = FormSection(
+        id = "timeline",
+        title = "Calendrier du projet",
+        description = "Planning de mise en œuvre",
+        order = 11,
+        fields = listOf(
+            FormField(
+                id = "start_date",
+                label = "Date de démarrage prévue",
+                type = FieldType.DATE,
+                required = true
+            ),
+            FormField(
+                id = "key_steps",
+                label = "Étapes clés",
+                type = FieldType.MULTI_SELECT,
+                required = true,
+                options = listOf("Installation", "Lancement", "Première vente", "Expansion")
+            ),
+            FormField(
+                id = "development_horizon",
+                label = "Horizon de développement",
+                type = FieldType.DROPDOWN,
+                required = true,
+                options = listOf("1 an", "3 ans", "5 ans")
+            )
+        )
+    )
+
+    private val businessDocumentsSection = FormSection(
+        id = "business_documents",
+        title = "Documents (optionnel)",
+        description = "Documents disponibles pour votre projet",
+        order = 12,
+        fields = listOf(
+            FormField(
+                id = "has_cv",
+                label = "CV disponible",
+                type = FieldType.CHECKBOX,
+                required = false
+            ),
+            FormField(
+                id = "has_financial_proofs",
+                label = "Preuves financières disponibles",
+                type = FieldType.CHECKBOX,
+                required = false
+            ),
+            FormField(
+                id = "has_business_plan",
+                label = "Business plan existant",
+                type = FieldType.CHECKBOX,
+                required = false
+            ),
+            FormField(
+                id = "has_partnership_letters",
+                label = "Lettres d'intention/partenaires",
+                type = FieldType.CHECKBOX,
+                required = false
+            )
+        )
+    )
+
+    private val businessSummarySection = FormSection(
+        id = "business_summary",
+        title = "Résumé du projet",
+        description = "Synthèse de votre projet d'affaires",
+        order = 13,
+        fields = listOf(
+            FormField(
+                id = "summary_type",
+                label = "Type de projet",
+                type = FieldType.READ_ONLY,
+                required = false,
+                value = "En cours d'évaluation"
+            ),
+            FormField(
+                id = "summary_investment",
+                label = "Montant d'investissement",
+                type = FieldType.READ_ONLY,
+                required = false,
+                value = "À déterminer"
+            ),
+            FormField(
+                id = "summary_jobs",
+                label = "Emplois prévus",
+                type = FieldType.READ_ONLY,
+                required = false,
+                value = "À déterminer"
+            ),
+            FormField(
+                id = "summary_maturity",
+                label = "Niveau de maturité",
+                type = FieldType.READ_ONLY,
+                required = false,
+                value = "En cours d'évaluation"
+            )
+        )
+    )
+
+    val businessPlanSchema = FormSchema(
+        id = "business_plan",
+        title = "Plan d'affaires",
+        description = "Formulaire pour évaluer votre projet d'immigration entrepreneur / investisseur",
+        dossierType = "BUSINESS_PLAN",
+        sections = listOf(
+            personalInfoSection,
+            contactSection,
+            familySection,
+            immigrationHistorySection,
+            entrepreneurialProfileSection,
+            projectDescriptionSection,
+            marketSection,
+            economicModelSection,
+            investmentSection,
+            jobsSection,
+            timelineSection,
+            businessDocumentsSection,
+            businessSummarySection
+        )
+    )
     
     fun getSchemaByDossierType(dossierType: String): FormSchema? {
         return when (dossierType) {
             "Entrée Express" -> entreeExpressSchema
             "Permis d'études" -> permisEtudesSchema
+            "Plan d'affaires" -> businessPlanSchema
             else -> null
         }
     }
