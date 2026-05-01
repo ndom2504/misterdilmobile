@@ -23,9 +23,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.misterdil.data.models.FieldType
-import com.example.misterdil.data.models.FormField
+import com.example.misterdil.data.models.*
 import com.example.misterdil.data.remote.AdminProfile
+import com.example.misterdil.ui.components.DynamicForm
 import com.example.misterdil.ui.viewmodels.ConversationCreateState
 import com.example.misterdil.ui.viewmodels.ChatViewModel
 import com.example.misterdil.ui.viewmodels.CreateDossierState
@@ -51,10 +51,11 @@ fun CreateDossierScreen(
     modifier: Modifier = Modifier
 ) {
     var selectedType by remember { mutableStateOf(dossierTypes[0]) }
+    val formSchema = remember(selectedType) {
+        FormSchemas.getSchemaByDossierType(selectedType)
+    }
     val formFields = remember(selectedType) {
-        mutableStateMapOf<String, String>().apply {
-            getTemplateForType(selectedType).forEach { put(it.id, "") }
-        }
+        mutableStateMapOf<String, String>()
     }
     val createState by viewModel.createState.collectAsState()
     val convCreateState by chatViewModel.convCreateState.collectAsState()
@@ -218,18 +219,20 @@ fun CreateDossierScreen(
                 }
 
                 item {
-                    HorizontalDivider()
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        "Informations requises — $selectedType",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-
-                items(getTemplateForType(selectedType)) { field ->
-                    CreateFormField(field = field, value = formFields[field.id] ?: "", onValueChange = { formFields[field.id] = it })
+                    if (formSchema != null) {
+                        DynamicForm(
+                            schema = formSchema,
+                            onFieldValueChange = { fieldId, value ->
+                                formFields[fieldId] = value
+                            }
+                        )
+                    } else {
+                        Text(
+                            "Formulaire non disponible pour ce type de dossier",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
 
                 item {
@@ -238,9 +241,13 @@ fun CreateDossierScreen(
                         Text((createState as CreateDossierState.Error).message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 8.dp))
                     }
                     Button(
-                        onClick = { viewModel.createDossier(type = selectedType, formData = formFields.toMap()) },
+                        onClick = { 
+                            if (formSchema != null) {
+                                viewModel.createDossier(type = selectedType, formData = formFields.toMap())
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth().height(52.dp),
-                        enabled = createState !is CreateDossierState.Loading
+                        enabled = formSchema != null && createState !is CreateDossierState.Loading
                     ) {
                         if (createState is CreateDossierState.Loading) {
                             CircularProgressIndicator(Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
@@ -251,39 +258,6 @@ fun CreateDossierScreen(
                     Spacer(modifier = Modifier.height(32.dp))
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun CreateFormField(field: FormField, value: String, onValueChange: (String) -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = field.label + if (field.required) " *" else "",
-            style = MaterialTheme.typography.labelLarge,
-            modifier = Modifier.padding(bottom = 6.dp)
-        )
-        when (field.type) {
-            FieldType.NUMBER -> OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true
-            )
-            FieldType.DATE -> OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("JJ/MM/AAAA") },
-                singleLine = true
-            )
-            else -> OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
         }
     }
 }
