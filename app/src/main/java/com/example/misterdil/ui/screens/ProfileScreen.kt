@@ -34,6 +34,7 @@ fun ProfileScreen(
     currentName: String,
     currentAvatarUrl: String?,
     onBack: () -> Unit,
+    onSaveSuccess: (name: String, avatarUrl: String?) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
     var name by remember { mutableStateOf(currentName) }
@@ -165,8 +166,9 @@ fun ProfileScreen(
                         try {
                             repository.updateProfile(name = name, avatar_url = avatarUrl)
                             saveSuccess = true
+                            onSaveSuccess(name, avatarUrl)
                         } catch (e: Exception) {
-                            // Handle error
+                            saveSuccess = false
                         } finally {
                             isSaving = false
                         }

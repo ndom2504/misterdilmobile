@@ -48,6 +48,10 @@ fun AdminProfileScreen(
             currentName = userName ?: "",
             currentAvatarUrl = photoUri,
             onBack = { showEditProfile = false },
+            onSaveSuccess = { newName, newAvatar ->
+                authViewModel.updateNameLocally(newName)
+                newAvatar?.let { authViewModel.updatePhotoUri(it) }
+            },
             modifier = modifier
         )
         return

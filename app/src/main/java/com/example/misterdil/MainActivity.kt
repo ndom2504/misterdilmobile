@@ -18,6 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -88,9 +89,14 @@ fun MIsterdilApp(
     isAdmin: Boolean
 ) {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
-    val visibleDestinations = AppDestinations.entries.filter { !it.adminOnly || isAdmin }
+    val visibleDestinations = AppDestinations.entries.filter {
+        (!it.adminOnly || isAdmin) && (!it.clientOnly || !isAdmin)
+    }
 
     if (currentDestination.adminOnly && !isAdmin) {
+        currentDestination = AppDestinations.HOME
+    }
+    if (currentDestination.clientOnly && isAdmin) {
         currentDestination = AppDestinations.HOME
     }
 
@@ -197,6 +203,12 @@ fun MIsterdilApp(
                         )
                     }
                 }
+                AppDestinations.CONSEILLER -> {
+                    AdvisorScreen(
+                        viewModel = dossierViewModel,
+                        modifier = modifier
+                    )
+                }
                 AppDestinations.PROFIL -> {
                     val isAdmin by authViewModel.isAdmin.collectAsState()
                     if (isAdmin) {
@@ -223,9 +235,11 @@ fun MIsterdilApp(
 enum class AppDestinations(
     val label: String,
     val icon: ImageVector,
-    val adminOnly: Boolean = false
+    val adminOnly: Boolean = false,
+    val clientOnly: Boolean = false
 ) {
     HOME("Accueil", Icons.Default.Home),
+    CONSEILLER("Conseiller", Icons.Default.Group, clientOnly = true),
     DOSSIER("Dossiers", Icons.AutoMirrored.Filled.List),
     MESSAGERIE("Messagerie", Icons.Default.Email),
     PAIEMENT("Paiement", Icons.Default.ShoppingCart),

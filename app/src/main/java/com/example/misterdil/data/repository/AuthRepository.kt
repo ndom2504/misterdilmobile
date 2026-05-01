@@ -45,6 +45,10 @@ class AuthRepository(
         context.dataStore.edit { it[PHOTO_URI_KEY] = uri }
     }
 
+    suspend fun saveName(name: String) {
+        context.dataStore.edit { it[NAME_KEY] = name }
+    }
+
     suspend fun logout() {
         try { apiService.logout() } catch (e: Exception) { e.printStackTrace() }
         context.dataStore.edit { it.clear() }

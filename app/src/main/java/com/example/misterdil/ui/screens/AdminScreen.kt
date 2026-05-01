@@ -51,11 +51,16 @@ fun AdminScreen(
     LaunchedEffect(Unit) { chatViewModel.refreshConversations() }
 
     if (showProfile) {
+        val photoUri by authViewModel.photoUri.collectAsState()
         ProfileScreen(
             repository = chatViewModel.dossierRepository,
             currentName = userName ?: "Admin",
-            currentAvatarUrl = null,
+            currentAvatarUrl = photoUri,
             onBack = { showProfile = false },
+            onSaveSuccess = { newName, newAvatar ->
+                authViewModel.updateNameLocally(newName)
+                newAvatar?.let { authViewModel.updatePhotoUri(it) }
+            },
             modifier = modifier
         )
     } else if (selectedConvId == null) {

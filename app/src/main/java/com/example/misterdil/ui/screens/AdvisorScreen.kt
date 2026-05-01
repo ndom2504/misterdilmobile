@@ -32,11 +32,12 @@ import com.example.misterdil.ui.viewmodels.DossierViewModel
 @Composable
 fun AdvisorScreen(
     viewModel: DossierViewModel,
-    onBack: () -> Unit,
-    onAdvisorSelected: (AdminProfile) -> Unit,
+    onBack: (() -> Unit)? = null,
+    onAdvisorSelected: ((AdminProfile) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val admins by viewModel.admins.collectAsState()
+    val isSelectionMode = onAdvisorSelected != null
 
     LaunchedEffect(Unit) {
         viewModel.loadAdmins()
@@ -45,12 +46,17 @@ fun AdvisorScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Choisir un conseiller", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
+                title = {
+                    Text(
+                        if (isSelectionMode) "Choisir un conseiller" else "Nos conseillers",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                navigationIcon = if (onBack != null) {{
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour")
                     }
-                }
+                }} else {{}}
             )
         },
         modifier = modifier
@@ -83,7 +89,7 @@ fun AdvisorScreen(
                 items(admins) { admin ->
                     AdvisorCard(
                         admin = admin,
-                        onClick = { onAdvisorSelected(admin) }
+                        onClick = if (isSelectionMode) {{ onAdvisorSelected?.invoke(admin) }} else null
                     )
                 }
             }
@@ -94,10 +100,10 @@ fun AdvisorScreen(
 @Composable
 private fun AdvisorCard(
     admin: AdminProfile,
-    onClick: () -> Unit
+    onClick: (() -> Unit)? = null
 ) {
     ElevatedCard(
-        onClick = onClick,
+        onClick = onClick ?: {},
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(

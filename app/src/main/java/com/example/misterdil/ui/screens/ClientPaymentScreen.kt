@@ -1,10 +1,7 @@
 package com.example.misterdil.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
@@ -13,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.misterdil.ui.components.*
@@ -27,7 +23,6 @@ fun ClientPaymentScreen(
     onNavigateToDossier: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    var paymentStatus by remember { mutableStateOf(PaymentStatus.PENDING) }
     var showConfirmation by remember { mutableStateOf(false) }
     var transactionId by remember { mutableStateOf("") }
     val configuration = LocalConfiguration.current
@@ -54,145 +49,38 @@ fun ClientPaymentScreen(
                 modifier = Modifier.fillMaxSize()
             )
         } else {
-            if (isTablet) {
-                // Tablet layout: récap gauche / historique droite
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(20.dp)
-                    ) {
-                        DossierPaymentHeader(
-                            dossierType = "Dossier d'immigration",
-                            dossierId = "",
-                            dossierStatus = "En attente"
-                        )
-                        PaymentSummaryCard(
-                            dossierType = "Dossier d'immigration",
-                            dossierId = "",
-                            description = "Frais de traitement du dossier",
-                            amount = "500 CAD",
-                            dueDate = ""
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            PaymentStatusBadge(status = paymentStatus)
-                        }
-                        StripeButton(
-                            amount = "500 CAD",
-                            enabled = paymentStatus == PaymentStatus.PENDING,
-                            onClick = {
-                                paymentStatus = PaymentStatus.PAID
-                                transactionId = "TXN-" + System.currentTimeMillis().toString().takeLast(8)
-                                showConfirmation = true
-                            }
-                        )
+                    Icon(
+                        Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(64.dp)
+                    )
+                    Text(
+                        "Aucun paiement en attente",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "Vos paiements apparaîtront ici lorsque votre conseiller vous enverra une facture.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedButton(onClick = onNavigateToDossier) {
+                        Text("Voir mes dossiers")
                     }
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(20.dp)
-                    ) {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer
-                            )
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    "Paiement sécurisé",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    "Vos informations de paiement sont traitées de manière sécurisée par Stripe. Nous ne stockons aucune donnée de carte bancaire.",
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
-                        }
-                    }
-                }
-            } else {
-                // Mobile layout
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
-                ) {
-                    item {
-                        DossierPaymentHeader(
-                            dossierType = "Dossier d'immigration",
-                            dossierId = "",
-                            dossierStatus = "En attente"
-                        )
-                    }
-
-                    item {
-                        PaymentSummaryCard(
-                            dossierType = "Dossier d'immigration",
-                            dossierId = "",
-                            description = "Frais de traitement du dossier",
-                            amount = "500 CAD",
-                            dueDate = ""
-                        )
-                    }
-
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            PaymentStatusBadge(status = paymentStatus)
-                        }
-                    }
-
-                    item {
-                        StripeButton(
-                            amount = "500 CAD",
-                            enabled = paymentStatus == PaymentStatus.PENDING,
-                            onClick = {
-                                paymentStatus = PaymentStatus.PAID
-                                transactionId = "TXN-" + System.currentTimeMillis().toString().takeLast(8)
-                                showConfirmation = true
-                            }
-                        )
-                    }
-
-                    item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer
-                            )
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    "Paiement sécurisé",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    "Vos informations de paiement sont traitées de manière sécurisée par Stripe. Nous ne stockons aucune donnée de carte bancaire.",
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
-                        }
-                    }
-
-                    item { Spacer(modifier = Modifier.height(80.dp)) }
                 }
             }
         }

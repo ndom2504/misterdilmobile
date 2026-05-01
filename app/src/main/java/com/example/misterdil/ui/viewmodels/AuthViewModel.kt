@@ -88,6 +88,10 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         viewModelScope.launch { repository.savePhotoUri(uri) }
     }
 
+    fun updateNameLocally(name: String) {
+        viewModelScope.launch { repository.saveName(name) }
+    }
+
     fun updateProfile(name: String, phone: String, language: String, onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
