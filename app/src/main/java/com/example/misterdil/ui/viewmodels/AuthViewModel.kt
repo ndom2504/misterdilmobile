@@ -32,6 +32,12 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
     val userName: StateFlow<String?> = repository.userName
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    val userEmail: StateFlow<String?> = repository.userEmail
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val photoUri: StateFlow<String?> = repository.photoUri
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
     val uiState: StateFlow<AuthUiState> = _uiState
 
@@ -76,6 +82,10 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
             repository.logout()
             _uiState.value = AuthUiState.Unauthenticated
         }
+    }
+
+    fun updatePhotoUri(uri: String) {
+        viewModelScope.launch { repository.savePhotoUri(uri) }
     }
 
     fun resetError() { _uiState.value = AuthUiState.Idle }

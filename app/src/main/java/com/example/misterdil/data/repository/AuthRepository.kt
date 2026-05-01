@@ -17,27 +17,35 @@ class AuthRepository(
     private val apiService: AuthApiService,
     private val context: Context
 ) {
-    private val TOKEN_KEY = stringPreferencesKey("auth_token")
-    private val ROLE_KEY  = stringPreferencesKey("user_role")
-    private val NAME_KEY  = stringPreferencesKey("user_name")
+    private val TOKEN_KEY     = stringPreferencesKey("auth_token")
+    private val ROLE_KEY      = stringPreferencesKey("user_role")
+    private val NAME_KEY      = stringPreferencesKey("user_name")
+    private val EMAIL_KEY     = stringPreferencesKey("user_email")
+    private val PHOTO_URI_KEY = stringPreferencesKey("photo_uri")
 
     val authToken: Flow<String?> = context.dataStore.data.map { it[TOKEN_KEY] }
     val userRole:  Flow<String?> = context.dataStore.data.map { it[ROLE_KEY] }
     val userName:  Flow<String?> = context.dataStore.data.map { it[NAME_KEY] }
+    val userEmail: Flow<String?> = context.dataStore.data.map { it[EMAIL_KEY] }
+    val photoUri:  Flow<String?> = context.dataStore.data.map { it[PHOTO_URI_KEY] }
 
     suspend fun login(email: String, password: String) {
         val r = apiService.login(LoginRequest(email, password))
-        saveSession(r.token, r.role, r.name)
+        saveSession(r.token, r.role, r.name, email)
     }
 
     suspend fun register(name: String, email: String, password: String, role: String) {
         val r = apiService.register(RegisterRequest(name, email, password, role))
-        saveSession(r.token, r.role, r.name)
+        saveSession(r.token, r.role, r.name, email)
     }
 
     suspend fun loginWithGoogle(idToken: String) {
         val r = apiService.googleAuth(GoogleAuthRequest(idToken))
-        saveSession(r.token, r.role, r.name)
+        saveSession(r.token, r.role, r.name, "")
+    }
+
+    suspend fun savePhotoUri(uri: String) {
+        context.dataStore.edit { it[PHOTO_URI_KEY] = uri }
     }
 
     suspend fun logout() {
@@ -45,11 +53,12 @@ class AuthRepository(
         context.dataStore.edit { it.clear() }
     }
 
-    private suspend fun saveSession(token: String, role: String, name: String) {
+    private suspend fun saveSession(token: String, role: String, name: String, email: String) {
         context.dataStore.edit { prefs ->
-            prefs[TOKEN_KEY] = token
-            prefs[ROLE_KEY]  = role
-            prefs[NAME_KEY]  = name
+            prefs[TOKEN_KEY]  = token
+            prefs[ROLE_KEY]   = role
+            prefs[NAME_KEY]   = name
+            prefs[EMAIL_KEY]  = email
         }
     }
 }

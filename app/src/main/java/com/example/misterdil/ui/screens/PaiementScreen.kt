@@ -81,7 +81,7 @@ fun PaiementScreen(viewModel: PaymentViewModel, modifier: Modifier = Modifier) {
             ) {
                 item {
                     FinancialSummaryCard(onPayClick = {
-                        viewModel.preparePayment(425000) // 4250.00$ en centimes
+                        viewModel.preparePayment(0)
                     })
                 }
 
@@ -93,8 +93,17 @@ fun PaiementScreen(viewModel: PaymentViewModel, modifier: Modifier = Modifier) {
                     )
                 }
 
-                items(sampleInvoices) { invoice ->
-                    InvoiceItem(invoice)
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "Aucune transaction pour le moment.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
                 }
             }
 
@@ -129,7 +138,7 @@ fun FinancialSummaryCard(onPayClick: () -> Unit) {
                 Text("Solde total à régler", style = MaterialTheme.typography.labelLarge)
             }
             Text(
-                text = "4 250,00 $",
+                text = "0,00 $",
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -221,9 +230,3 @@ data class Invoice(
     val status: String
 )
 
-val sampleInvoices = listOf(
-    Invoice("INV-001", "Jean Dupont", "Entrée Express", "1 500,00", "15 Mars 2024", "Payé"),
-    Invoice("INV-002", "Marie Curie", "Permis d'études", "850,00", "10 Avril 2024", "En attente"),
-    Invoice("INV-003", "InnoTech S.A.R.L", "Plan d'affaires", "2 200,00", "01 Avril 2024", "En retard"),
-    Invoice("INV-004", "Ahmed Salem", "Études", "750,00", "20 Fév. 2024", "Payé")
-)

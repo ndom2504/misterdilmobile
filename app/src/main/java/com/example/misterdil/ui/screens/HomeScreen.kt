@@ -20,7 +20,11 @@ import com.example.misterdil.ui.viewmodels.DossierViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(viewModel: DossierViewModel, modifier: Modifier = Modifier) {
+fun HomeScreen(
+    viewModel: DossierViewModel,
+    modifier: Modifier = Modifier,
+    onNavigateTo: (String) -> Unit = {}
+) {
     val dossiers by viewModel.dossiers.collectAsState()
 
     Scaffold(
@@ -60,9 +64,9 @@ fun HomeScreen(viewModel: DossierViewModel, modifier: Modifier = Modifier) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    QuickActionCard("Nouveau", Icons.Default.Add, Modifier.weight(1f))
-                    QuickActionCard("Message", Icons.AutoMirrored.Filled.Chat, Modifier.weight(1f))
-                    QuickActionCard("Payer", Icons.Default.Payment, Modifier.weight(1f))
+                    QuickActionCard("Nouveau", Icons.Default.Add, Modifier.weight(1f)) { onNavigateTo("dossier") }
+                    QuickActionCard("Message", Icons.AutoMirrored.Filled.Chat, Modifier.weight(1f)) { onNavigateTo("messagerie") }
+                    QuickActionCard("Payer", Icons.Default.Payment, Modifier.weight(1f)) { onNavigateTo("paiement") }
                 }
             }
 
@@ -92,9 +96,9 @@ fun HomeScreen(viewModel: DossierViewModel, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun QuickActionCard(label: String, icon: ImageVector, modifier: Modifier = Modifier) {
+fun QuickActionCard(label: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
     ElevatedCard(
-        onClick = { /* Action */ },
+        onClick = onClick,
         modifier = modifier.height(100.dp)
     ) {
         Column(

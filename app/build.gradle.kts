@@ -68,6 +68,9 @@ dependencies {
     // Stripe
     implementation(libs.stripe.android)
 
+    // Coil (image loading)
+    implementation(libs.coil.compose)
+
     // Video (ExoPlayer)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)

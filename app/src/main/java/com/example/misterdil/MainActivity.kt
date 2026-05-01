@@ -111,7 +111,14 @@ fun MIsterdilApp(
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             val modifier = Modifier.padding(innerPadding)
             when (currentDestination) {
-                AppDestinations.HOME -> HomeScreen(dossierViewModel, modifier)
+                AppDestinations.HOME -> HomeScreen(dossierViewModel, modifier, onNavigateTo = { dest ->
+                    currentDestination = when (dest) {
+                        "dossier"    -> AppDestinations.DOSSIER
+                        "messagerie" -> AppDestinations.MESSAGERIE
+                        "paiement"   -> AppDestinations.PAIEMENT
+                        else         -> AppDestinations.HOME
+                    }
+                })
                 AppDestinations.DOSSIER -> DossierScreen(dossierViewModel, modifier)
                 AppDestinations.MESSAGERIE -> MessagerieScreen(chatViewModel, modifier)
                 AppDestinations.PAIEMENT -> PaiementScreen(paymentViewModel, modifier)

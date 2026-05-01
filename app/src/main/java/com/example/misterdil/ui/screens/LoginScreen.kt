@@ -199,57 +199,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                HorizontalDivider(modifier = Modifier.weight(1f))
-                Text(
-                    "  ou continuer avec  ",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-                HorizontalDivider(modifier = Modifier.weight(1f))
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedButton(
-                onClick = {
-                    coroutineScope.launch {
-                        try {
-                            val signInOption = GetSignInWithGoogleOption
-                                .Builder(GOOGLE_WEB_CLIENT_ID)
-                                .build()
-                            val request = GetCredentialRequest.Builder()
-                                .addCredentialOption(signInOption)
-                                .build()
-                            val result = credentialManager.getCredential(context, request)
-                            val credential = result.credential
-                            if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-                                val googleCred = GoogleIdTokenCredential.createFrom(credential.data)
-                                viewModel.loginWithGoogle(googleCred.idToken)
-                            }
-                        } catch (e: GetCredentialException) {
-                            Toast.makeText(context, "Erreur Google: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Text(
-                    "G  Continuer avec Google",
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF4285F4)
-                )
-            }
-
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Pas encore de compte ?")
                 TextButton(onClick = onNavigateToRegister) {
