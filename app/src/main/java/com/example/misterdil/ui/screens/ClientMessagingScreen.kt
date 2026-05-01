@@ -1,0 +1,241 @@
+package com.example.misterdil.ui.screens
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.example.misterdil.data.models.Conversation
+import com.example.misterdil.data.models.Message
+import com.example.misterdil.ui.components.*
+import com.example.misterdil.ui.viewmodels.ChatViewModel
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ClientMessagingScreen(
+    viewModel: ChatViewModel,
+    onNavigateToDossier: (String) -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    var selectedConversation by remember { mutableStateOf<Conversation?>(null) }
+    val conversations by viewModel.conversations.collectAsState()
+    val configuration = LocalConfiguration.current
+    val isTablet = configuration.screenWidthDp >= 600
+
+    if (isTablet) {
+        // Tablet split view
+        Row(modifier = modifier.fillMaxSize()) {
+            // Liste des conversations (gauche)
+            Column(
+                modifier = Modifier
+                    .width(300.dp)
+                    .fillMaxHeight()
+                    .background(MaterialTheme.colorScheme.surface)
+            ) {
+                ConversationListScreen(
+                    conversations = conversations,
+                    onConversationClick = { selectedConversation = it },
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            VerticalDivider()
+            // Conversation détail (droite)
+            if (selectedConversation != null) {
+                ConversationDetailScreen(
+                    conversation = selectedConversation!!,
+                    onBack = { selectedConversation = null },
+                    onNavigateToDossier = onNavigateToDossier,
+                    viewModel = viewModel,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "Sélectionnez une conversation",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
+        }
+    } else {
+        // Mobile navigation
+        if (selectedConversation == null) {
+            ConversationListScreen(
+                conversations = conversations,
+                onConversationClick = { selectedConversation = it },
+                modifier = modifier
+            )
+        } else {
+            ConversationDetailScreen(
+                conversation = selectedConversation!!,
+                onBack = { selectedConversation = null },
+                onNavigateToDossier = onNavigateToDossier,
+                viewModel = viewModel,
+                modifier = modifier
+            )
+        }
+    }
+}
+
+@Composable
+fun ConversationListScreen(
+    conversations: List<Conversation>,
+    onConversationClick: (Conversation) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Messagerie", fontWeight = FontWeight.Bold) }
+            )
+        },
+        modifier = modifier
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Tri: messages non lus en haut
+            val sortedConversations = conversations.sortedByDescending { it.unreadCount > 0 }
+
+            if (sortedConversations.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "Aucune conversation.",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            } else {
+                items(sortedConversations) { conv ->
+                    ConversationItem(
+                        dossierType = conv.projectName,
+                        lastMessage = conv.lastMessage,
+                        timestamp = "10:30",
+                        hasUnread = conv.unreadCount > 0,
+                        status = "En cours",
+                        onClick = { onConversationClick(conv) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ConversationDetailScreen(
+    conversation: Conversation,
+    onBack: () -> Unit,
+    onNavigateToDossier: (String) -> Unit,
+    viewModel: ChatViewModel,
+    modifier: Modifier = Modifier
+) {
+    var messageText by remember { mutableStateOf("") }
+    val messages by viewModel.messages.collectAsState()
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(conversation.projectName, fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour")
+                    }
+                },
+                actions = {
+                    TextButton(onClick = { onNavigateToDossier("dossier/${conversation.dossierId}") }) {
+                        Text("Voir le dossier")
+                    }
+                }
+            )
+        },
+        modifier = modifier
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            // Messages
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Message système
+                item {
+                    MessageBubble(
+                        text = "Dossier créé",
+                        sender = MessageSender.SYSTEM,
+                        timestamp = conversation.createdAt
+                    )
+                }
+
+                // Messages de la conversation
+                items(messages) { msg ->
+                    MessageBubble(
+                        text = msg.text,
+                        sender = if (msg.isFromMe) MessageSender.CLIENT else MessageSender.ADMIN,
+                        timestamp = msg.timestamp
+                    )
+                }
+            }
+
+            // Zone de réponse
+            Divider()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = { /* Attach file */ }) {
+                    Icon(Icons.Default.AttachFile, contentDescription = "Joindre")
+                }
+                OutlinedTextField(
+                    value = messageText,
+                    onValueChange = { messageText = it },
+                    modifier = Modifier.weight(1f),
+                    placeholder = { Text("Écrire un message...") },
+                    singleLine = true,
+                    shape = RoundedCornerShape(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                IconButton(
+                    onClick = {
+                        if (messageText.isNotBlank()) {
+                            viewModel.sendMessage(conversation.id, messageText)
+                            messageText = ""
+                        }
+                    }
+                ) {
+                    Icon(Icons.Default.Send, contentDescription = "Envoyer")
+                }
+            }
+        }
+    }
+}

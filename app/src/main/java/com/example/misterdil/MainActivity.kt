@@ -150,11 +150,32 @@ fun MIsterdilApp(
                     val isAdmin by authViewModel.isAdmin.collectAsState()
                     DossierScreen(dossierViewModel, chatViewModel, modifier, isAdmin)
                 }
-                AppDestinations.MESSAGERIE -> MessagerieScreen(
-                    viewModel = chatViewModel,
-                    modifier = modifier,
-                    onNavigateToPaiement = { currentDestination = AppDestinations.PAIEMENT }
-                )
+                AppDestinations.MESSAGERIE -> {
+                    val isAdmin by authViewModel.isAdmin.collectAsState()
+                    if (isAdmin) {
+                        AdminMessagingScreen(
+                            viewModel = chatViewModel,
+                            onNavigateToDossier = { dest ->
+                                currentDestination = when {
+                                    dest.startsWith("dossier") -> AppDestinations.DOSSIER
+                                    else -> AppDestinations.HOME
+                                }
+                            },
+                            modifier = modifier
+                        )
+                    } else {
+                        ClientMessagingScreen(
+                            viewModel = chatViewModel,
+                            onNavigateToDossier = { dest ->
+                                currentDestination = when {
+                                    dest.startsWith("dossier") -> AppDestinations.DOSSIER
+                                    else -> AppDestinations.HOME
+                                }
+                            },
+                            modifier = modifier
+                        )
+                    }
+                }
                 AppDestinations.PAIEMENT -> PaiementScreen(paymentViewModel, modifier)
                 AppDestinations.PROFIL -> ProfilScreen(authViewModel, modifier)
                 AppDestinations.ADMIN -> AdminScreen(authViewModel, chatViewModel, modifier)
