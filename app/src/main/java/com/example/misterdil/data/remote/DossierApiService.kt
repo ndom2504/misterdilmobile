@@ -10,7 +10,8 @@ import retrofit2.http.Path
 data class AdminProfile(
     val id: Int,
     val name: String,
-    val email: String
+    val email: String,
+    val avatar_url: String? = null
 )
 
 data class CreateDossierRequest(
