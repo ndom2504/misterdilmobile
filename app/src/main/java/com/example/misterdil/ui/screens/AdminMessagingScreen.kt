@@ -100,6 +100,7 @@ fun AdminMessagingScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminInboxScreen(
     conversations: List<Conversation>,
