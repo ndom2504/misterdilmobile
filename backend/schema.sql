@@ -9,8 +9,12 @@ CREATE TABLE users (
   email       VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   name        VARCHAR(255) NOT NULL,
+  role        VARCHAR(20)  NOT NULL DEFAULT 'user', -- 'user' | 'admin'
   created_at  TIMESTAMP DEFAULT NOW()
 );
+
+-- Migration si la table existe déjà (exécuter manuellement dans Neon SQL Editor)
+-- ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'user';
 
 -- Dossiers d'immigration
 CREATE TABLE dossiers (

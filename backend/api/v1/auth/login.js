@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
 
   try {
     const users = await sql`
-      SELECT id, email, password_hash, name FROM users
+      SELECT id, email, password_hash, name, role FROM users
       WHERE email = ${email.toLowerCase()}
       LIMIT 1
     `;
@@ -23,13 +23,14 @@ module.exports = async (req, res) => {
       return res.status(401).json({ error: 'Identifiants invalides' });
     }
 
-    const token = generateToken({ userId: user.id, email: user.email });
+    const token = generateToken({ userId: user.id, email: user.email, role: user.role });
 
     return res.status(200).json({
       token,
       user_id: user.id,
       email: user.email,
       name: user.name,
+      role: user.role,
     });
   } catch (err) {
     console.error('Login error:', err);

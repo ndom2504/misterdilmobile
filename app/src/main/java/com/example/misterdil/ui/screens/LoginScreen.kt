@@ -1,5 +1,6 @@
 package com.example.misterdil.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -15,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -22,15 +24,30 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
 import com.example.misterdil.ui.viewmodels.AuthUiState
 import com.example.misterdil.ui.viewmodels.AuthViewModel
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.launch
+
+private const val GOOGLE_WEB_CLIENT_ID =
+    "161120944636-19kdl5afp88v7afhbvuo1cde4ropbmtg.apps.googleusercontent.com"
 
 @Composable
-fun LoginScreen(viewModel: AuthViewModel) {
+fun LoginScreen(
+    viewModel: AuthViewModel,
+    onNavigateToRegister: () -> Unit
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val credentialManager = remember { CredentialManager.create(context) }
 
     val gradientBrush = Brush.verticalGradient(
         colors = listOf(
@@ -172,17 +189,89 @@ fun LoginScreen(viewModel: AuthViewModel) {
                         }
                     }
 
-                    TextButton(onClick = { /* TODO */ }) {
+                    TextButton(onClick = {
+                        Toast.makeText(context, "Réinitialisation non disponible pour l'instant", Toast.LENGTH_SHORT).show()
+                    }) {
                         Text("Mot de passe oublié ?")
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                HorizontalDivider(modifier = Modifier.weight(1f))
+                Text(
+                    "  ou continuer avec  ",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                HorizontalDivider(modifier = Modifier.weight(1f))
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedButton(
+                onClick = {
+                    coroutineScope.launch {
+                        try {
+                            val googleIdOption = GetGoogleIdOption.Builder()
+                                .setFilterByAuthorizedAccounts(false)
+                                .setServerClientId(GOOGLE_WEB_CLIENT_ID)
+                                .setAutoSelectEnabled(false)
+                                .build()
+                            val request = GetCredentialRequest.Builder()
+                                .addCredentialOption(googleIdOption)
+                                .build()
+                            val result = credentialManager.getCredential(context, request)
+                            val credential = result.credential
+                            if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                                val googleCred = GoogleIdTokenCredential.createFrom(credential.data)
+                                viewModel.loginWithGoogle(googleCred.idToken)
+                            }
+                        } catch (e: GetCredentialException) {
+                            Toast.makeText(context, "Google Sign-In: ${e.message}", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Text(
+                    "G  Continuer avec Google",
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF4285F4)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedButton(
+                onClick = {
+                    Toast.makeText(context, "Microsoft Sign-In — Configuration requise dans Azure AD", Toast.LENGTH_LONG).show()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Text(
+                    "⊞  Continuer avec Microsoft",
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF00A4EF)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Pas encore de compte ?")
-                TextButton(onClick = { /* TODO */ }) {
+                TextButton(onClick = onNavigateToRegister) {
                     Text("S'inscrire", fontWeight = FontWeight.Bold)
                 }
             }

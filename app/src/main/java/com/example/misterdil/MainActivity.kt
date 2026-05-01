@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -52,11 +53,21 @@ class MainActivity : ComponentActivity() {
         setContent {
             MIsterdilTheme {
                 val isAuthenticated by authViewModel.isAuthenticated.collectAsState()
-                
-                if (isAuthenticated) {
-                    MIsterdilApp(authViewModel, dossierViewModel, paymentViewModel, chatViewModel)
-                } else {
-                    LoginScreen(authViewModel)
+                val isAdmin by authViewModel.isAdmin.collectAsState()
+                var showRegister by rememberSaveable { mutableStateOf(false) }
+
+                when {
+                    isAuthenticated -> MIsterdilApp(
+                        authViewModel, dossierViewModel, paymentViewModel, chatViewModel, isAdmin
+                    )
+                    showRegister -> RegisterScreen(
+                        viewModel = authViewModel,
+                        onNavigateToLogin = { showRegister = false }
+                    )
+                    else -> LoginScreen(
+                        viewModel = authViewModel,
+                        onNavigateToRegister = { showRegister = true }
+                    )
                 }
             }
         }
@@ -68,13 +79,19 @@ fun MIsterdilApp(
     authViewModel: AuthViewModel,
     dossierViewModel: DossierViewModel,
     paymentViewModel: PaymentViewModel,
-    chatViewModel: ChatViewModel
+    chatViewModel: ChatViewModel,
+    isAdmin: Boolean
 ) {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
+    val visibleDestinations = AppDestinations.entries.filter { !it.adminOnly || isAdmin }
+
+    if (currentDestination.adminOnly && !isAdmin) {
+        currentDestination = AppDestinations.HOME
+    }
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
-            AppDestinations.entries.forEach {
+            visibleDestinations.forEach {
                 item(
                     icon = {
                         Icon(
@@ -97,6 +114,7 @@ fun MIsterdilApp(
                 AppDestinations.MESSAGERIE -> MessagerieScreen(chatViewModel, modifier)
                 AppDestinations.PAIEMENT -> PaiementScreen(paymentViewModel, modifier)
                 AppDestinations.PROFIL -> ProfilScreen(authViewModel, modifier)
+                AppDestinations.ADMIN -> AdminScreen(authViewModel, modifier)
             }
         }
     }
@@ -105,10 +123,12 @@ fun MIsterdilApp(
 enum class AppDestinations(
     val label: String,
     val icon: ImageVector,
+    val adminOnly: Boolean = false
 ) {
     HOME("Accueil", Icons.Default.Home),
-    DOSSIER("Dossier", Icons.AutoMirrored.Filled.List),
+    DOSSIER("Dossiers", Icons.AutoMirrored.Filled.List),
     MESSAGERIE("Messagerie", Icons.Default.Email),
     PAIEMENT("Paiement", Icons.Default.ShoppingCart),
     PROFIL("Profil", Icons.Default.Person),
+    ADMIN("Admin", Icons.Default.AdminPanelSettings, adminOnly = true),
 }
