@@ -333,11 +333,11 @@ private fun AdminClientDetailScreen(
             scope.launch {
                 try {
                     val fileUrl = chatViewModel.uploadFile(it)
-                    onSendMessage("${'$'}FILE_MSG_PREFIX${'$'}fileUrl")
+                    onSendMessage("$FILE_MSG_PREFIX$fileUrl")
                 } catch (e: Exception) {
                     // Fallback: send filename only
                     val fileName = getFileName(context, it)
-                    onSendMessage("${'$'}FILE_MSG_PREFIX${'$'}fileName")
+                    onSendMessage("$FILE_MSG_PREFIX$fileName")
                 }
             }
         }
@@ -369,7 +369,7 @@ private fun AdminClientDetailScreen(
                 Button(onClick = {
                     if (paymentAmount.isNotBlank()) {
                         val desc = paymentDesc.ifBlank { "Frais de service" }
-                        onSendMessage("${'$'}PAYMENT_MSG_PREFIX${'$'}paymentAmount:${'$'}desc")
+                        onSendMessage("$PAYMENT_MSG_PREFIX$paymentAmount:$desc")
                         showPaymentDialog = false
                         paymentAmount = ""
                         paymentDesc = ""

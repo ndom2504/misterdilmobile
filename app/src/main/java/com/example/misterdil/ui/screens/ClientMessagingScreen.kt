@@ -161,11 +161,11 @@ fun ConversationDetailScreen(
             scope.launch {
                 try {
                     val fileUrl = viewModel.uploadFile(it)
-                    viewModel.sendMessage("${'$'}FILE_MSG_PREFIX${'$'}fileUrl")
+                    viewModel.sendMessage("$FILE_MSG_PREFIX$fileUrl")
                 } catch (e: Exception) {
                     // Fallback: send filename only
                     val fileName = getFileName(context, it)
-                    viewModel.sendMessage("${'$'}FILE_MSG_PREFIX${'$'}fileName")
+                    viewModel.sendMessage("$FILE_MSG_PREFIX$fileName")
                 }
             }
         }
@@ -191,7 +191,8 @@ fun ConversationDetailScreen(
                         text = msg.text,
                         sender = if (msg.isFromMe) MessageSender.CLIENT else MessageSender.ADMIN,
                         timestamp = "",
-                        avatarUrl = if (!msg.isFromMe) conversation.avatarUrl else null
+                        avatarUrl = if (!msg.isFromMe) conversation.avatarUrl else null,
+                        onPay = onNavigateToPaiement
                     )
                 }
             }

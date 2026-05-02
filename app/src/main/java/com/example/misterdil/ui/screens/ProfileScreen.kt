@@ -177,9 +177,9 @@ fun ProfileScreen(
                         // Try backend silently
                         val remoteAvatar = if (avatarUrl?.startsWith("content://") == true) null else avatarUrl
                         try {
-                            val response = repository.updateProfile(name = name, avatar_url = remoteAvatar)
+                            val response = authRepository.updateProfile(name = name, phone = "", language = "", avatar_url = remoteAvatar)
                             // Sync avatar_url from backend response to DataStore
-                            response.avatar_url?.let { authRepository.savePhotoUri(it) }
+                            response.avatarUrl?.let { authRepository.savePhotoUri(it) }
                         } catch (e: Exception) {
                             // Backend unavailable — local save already done
                         } finally {
