@@ -177,7 +177,7 @@ fun ProfileScreen(
                         try {
                             val response = repository.updateProfile(name = name, avatar_url = remoteAvatar)
                             // Sync avatar_url from backend response to DataStore
-                            response.avatar_url?.let { viewModel.updatePhotoUri(it) }
+                            response.avatar_url?.let { repository.savePhotoUri(it) }
                         } catch (e: Exception) {
                             // Backend unavailable — local save already done
                         } finally {
