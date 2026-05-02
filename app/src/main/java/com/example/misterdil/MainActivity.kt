@@ -207,7 +207,6 @@ fun MIsterdilApp(
                             onNavigateToPaiement = {
                                 currentDestination = AppDestinations.PAIEMENT
                             },
-                            authRepository = authRepository,
                             modifier = modifier
                         )
                     }
