@@ -91,9 +91,7 @@ fun MessagerieScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier, on
             messages = messages,
             onSendMessage = { viewModel.sendMessage(it) },
             onBack = { selectedConversationId = null },
-            onNavigateToPaiement = { paymentData ->
-                onNavigateToPaiement?.invoke()
-            },
+            onNavigateToPaiement = onNavigateToPaiement,
             modifier = modifier,
             viewModel = viewModel
         )
