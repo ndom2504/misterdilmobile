@@ -121,7 +121,7 @@ fun ClientDossierScreen(
                     Column {
                         Text("Facturation", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.height(12.dp))
-                        PaymentCard(amount = "250 CAD", status = PaymentStatus.PENDING, onPay = {})
+                        PaymentCard(amount = "À définir", status = PaymentStatus.PENDING, onPay = {})
                     }
                 }
             }

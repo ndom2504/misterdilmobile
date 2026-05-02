@@ -2,6 +2,7 @@ package com.example.misterdil.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
@@ -10,8 +11,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.misterdil.data.models.Dossier
 import com.example.misterdil.ui.components.*
 import com.example.misterdil.ui.viewmodels.DossierViewModel
@@ -99,7 +103,7 @@ fun AdminDossierScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 PaymentCard(
-                    amount = "250 CAD", // Devise CAD
+                    amount = "À définir", // Devise CAD
                     status = PaymentStatus.PENDING,
                     isAdmin = true,
                     onViewDetails = {}
@@ -117,9 +121,34 @@ fun AdminDossierHeader(dossier: Dossier) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
-                    Text(dossier.clientName, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                    Text(dossier.type, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary)
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (!dossier.avatarUrl.isNullOrEmpty()) {
+                            AsyncImage(
+                                model = dossier.avatarUrl,
+                                contentDescription = "Avatar client",
+                                modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Text(
+                                dossier.clientName.firstOrNull()?.toString()?.uppercase() ?: "C",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+                    Column {
+                        Text(dossier.clientName, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Text(dossier.type, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary)
+                    }
                 }
                 StatusBadge(dossier.status)
             }

@@ -18,5 +18,9 @@ data class Dossier(
     @SerializedName("progress")
     val progress: Float,
     @SerializedName("last_update")
-    val lastUpdate: String
+    val lastUpdate: String,
+    @SerializedName("avatar_url")
+    val avatarUrl: String? = null,
+    @SerializedName("user_id")
+    val userId: String? = null
 )

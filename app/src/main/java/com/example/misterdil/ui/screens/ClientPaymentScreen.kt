@@ -127,10 +127,10 @@ fun ClientPaymentScreen(
                     ) {
                         Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("Provision de dossier", style = MaterialTheme.typography.labelMedium)
-                            Text("250 CAD", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
+                            Text("À définir", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
                             Spacer(Modifier.height(12.dp))
                             Button(
-                                onClick = { viewModel.preparePayment(250, "cad") },
+                                onClick = { viewModel.preparePayment(0, "cad") },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text("Payer maintenant")

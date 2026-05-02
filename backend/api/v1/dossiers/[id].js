@@ -8,9 +8,10 @@ module.exports = withAuth(async (req, res) => {
 
   try {
     const dossiers = await sql`
-      SELECT id, client_name, type, status, progress, last_update
-      FROM dossiers
-      WHERE id = ${id} AND user_id = ${req.user.userId}
+      SELECT d.id, d.client_name, d.type, d.status, d.progress, d.last_update, d.user_id, u.avatar_url
+      FROM dossiers d
+      LEFT JOIN users u ON u.id = d.user_id
+      WHERE d.id = ${id} AND d.user_id = ${req.user.userId}
       LIMIT 1
     `;
 
