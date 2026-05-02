@@ -62,6 +62,8 @@ class ChatRepository(
                 )
                 messageDao.insertMessage(newMessage)
                 apiService.sendMessage(conversationId, newMessage)
+                // Refresh messages from backend to ensure consistency
+                refreshMessages(conversationId)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
