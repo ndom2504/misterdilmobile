@@ -15,7 +15,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.Group
@@ -93,13 +92,6 @@ fun MIsterdilApp(
         (!it.adminOnly || isAdmin) && (!it.clientOnly || !isAdmin)
     }
 
-    if (currentDestination.adminOnly && !isAdmin) {
-        currentDestination = AppDestinations.HOME
-    }
-    if (currentDestination.clientOnly && isAdmin) {
-        currentDestination = AppDestinations.HOME
-    }
-
     NavigationSuiteScaffold(
         navigationSuiteItems = {
             visibleDestinations.forEach {
@@ -128,11 +120,16 @@ fun MIsterdilApp(
                             chatViewModel = chatViewModel,
                             modifier = modifier,
                             onNavigateTo = { dest ->
-                                currentDestination = when (dest) {
-                                    "dossier"    -> AppDestinations.DOSSIER
-                                    "messagerie" -> AppDestinations.MESSAGERIE
-                                    "paiement"   -> AppDestinations.PAIEMENT
-                                    else         -> AppDestinations.HOME
+                                currentDestination = when {
+                                    dest.startsWith("dossier") -> {
+                                        val id = dest.substringAfter("/", "")
+                                        if (id.isNotEmpty()) dossierViewModel.navigateToDossier(id)
+                                        AppDestinations.DOSSIER
+                                    }
+                                    dest.startsWith("messagerie") -> AppDestinations.MESSAGERIE
+                                    dest.startsWith("paiement") -> AppDestinations.PAIEMENT
+                                    dest.startsWith("profil") -> AppDestinations.PROFIL
+                                    else -> AppDestinations.HOME
                                 }
                             }
                         )
@@ -143,50 +140,48 @@ fun MIsterdilApp(
                             userName = userName,
                             modifier = modifier,
                             onNavigateTo = { dest ->
-                                currentDestination = when (dest) {
-                                    "dossier"    -> AppDestinations.DOSSIER
-                                    "messagerie" -> AppDestinations.MESSAGERIE
-                                    "paiement"   -> AppDestinations.PAIEMENT
-                                    "profil"     -> AppDestinations.PROFIL
-                                    "create_dossier" -> AppDestinations.DOSSIER
-                                    else         -> AppDestinations.HOME
+                                currentDestination = when {
+                                    dest.startsWith("dossier") -> {
+                                        val id = dest.substringAfter("/", "")
+                                        if (id.isNotEmpty()) dossierViewModel.navigateToDossier(id)
+                                        AppDestinations.DOSSIER
+                                    }
+                                    dest.startsWith("messagerie") -> AppDestinations.MESSAGERIE
+                                    dest.startsWith("paiement") -> AppDestinations.PAIEMENT
+                                    dest.startsWith("profil") -> AppDestinations.PROFIL
+                                    dest == "create_dossier" -> AppDestinations.DOSSIER
+                                    else -> AppDestinations.HOME
                                 }
                             }
                         )
                     }
                 }
                 AppDestinations.DOSSIER -> {
-                    val isAdmin by authViewModel.isAdmin.collectAsState()
-                    DossierScreen(dossierViewModel, chatViewModel, modifier, isAdmin)
+                    val isAdminByAuth by authViewModel.isAdmin.collectAsState()
+                    DossierScreen(dossierViewModel, chatViewModel, modifier, isAdminByAuth)
                 }
                 AppDestinations.MESSAGERIE -> {
-                    val isAdmin by authViewModel.isAdmin.collectAsState()
                     if (isAdmin) {
                         AdminMessagingScreen(
                             viewModel = chatViewModel,
-                            onNavigateToDossier = { dest ->
-                                currentDestination = when {
-                                    dest.startsWith("dossier") -> AppDestinations.DOSSIER
-                                    else -> AppDestinations.HOME
-                                }
+                            onNavigateToDossier = { id ->
+                                dossierViewModel.navigateToDossier(id)
+                                currentDestination = AppDestinations.DOSSIER
                             },
                             modifier = modifier
                         )
                     } else {
                         ClientMessagingScreen(
                             viewModel = chatViewModel,
-                            onNavigateToDossier = { dest ->
-                                currentDestination = when {
-                                    dest.startsWith("dossier") -> AppDestinations.DOSSIER
-                                    else -> AppDestinations.HOME
-                                }
+                            onNavigateToDossier = { id ->
+                                dossierViewModel.navigateToDossier(id)
+                                currentDestination = AppDestinations.DOSSIER
                             },
                             modifier = modifier
                         )
                     }
                 }
                 AppDestinations.PAIEMENT -> {
-                    val isAdmin by authViewModel.isAdmin.collectAsState()
                     if (isAdmin) {
                         AdminPaymentScreen(
                             viewModel = paymentViewModel,
@@ -210,7 +205,6 @@ fun MIsterdilApp(
                     )
                 }
                 AppDestinations.PROFIL -> {
-                    val isAdmin by authViewModel.isAdmin.collectAsState()
                     if (isAdmin) {
                         AdminProfileScreen(
                             authViewModel = authViewModel,
@@ -221,6 +215,7 @@ fun MIsterdilApp(
                     } else {
                         ClientProfileScreen(
                             authViewModel = authViewModel,
+                            dossierRepository = dossierViewModel.repository,
                             onLogout = { authViewModel.logout() },
                             modifier = modifier
                         )

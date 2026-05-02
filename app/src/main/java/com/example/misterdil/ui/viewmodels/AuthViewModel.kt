@@ -38,6 +38,9 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
     val photoUri: StateFlow<String?> = repository.photoUri
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    val userId: StateFlow<String?> = repository.userId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
     val uiState: StateFlow<AuthUiState> = _uiState
 

@@ -2,22 +2,26 @@ package com.example.misterdil.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import com.example.misterdil.data.repository.DossierRepository
 import com.example.misterdil.ui.components.*
 import com.example.misterdil.ui.viewmodels.AuthViewModel
 
@@ -25,21 +29,37 @@ import com.example.misterdil.ui.viewmodels.AuthViewModel
 @Composable
 fun ClientProfileScreen(
     authViewModel: AuthViewModel,
+    dossierRepository: DossierRepository,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var notificationsEnabled by remember { mutableStateOf(true) }
-    var paymentNotificationsEnabled by remember { mutableStateOf(true) }
-    var showEditProfileDialog by remember { mutableStateOf(false) }
+    val userName by authViewModel.userName.collectAsState()
+    val userEmail by authViewModel.userEmail.collectAsState()
+    val photoUri by authViewModel.photoUri.collectAsState()
+    val userId by authViewModel.userId.collectAsState()
+    
+    var showEditProfile by remember { mutableStateOf(false) }
     var showChangePasswordDialog by remember { mutableStateOf(false) }
     var showDeleteAccountDialog by remember { mutableStateOf(false) }
-    val authName by authViewModel.userName.collectAsState()
-    val authEmail by authViewModel.userEmail.collectAsState()
-    var userName by remember(authName) { mutableStateOf(authName ?: "") }
-    var userPhone by remember { mutableStateOf("") }
-    var userLanguage by remember { mutableStateOf("") }
+    
     val configuration = LocalConfiguration.current
     val isTablet = configuration.screenWidthDp >= 600
+
+    if (showEditProfile) {
+        ProfileScreen(
+            repository = dossierRepository,
+            currentName = userName ?: "",
+            currentAvatarUrl = photoUri,
+            userId = userId ?: "client",
+            onBack = { showEditProfile = false },
+            onSaveSuccess = { newName, newAvatar ->
+                authViewModel.updateNameLocally(newName)
+                newAvatar?.let { authViewModel.updatePhotoUri(it) }
+            },
+            modifier = modifier
+        )
+        return
+    }
 
     Scaffold(
         topBar = {
@@ -49,419 +69,92 @@ fun ClientProfileScreen(
         },
         modifier = modifier
     ) { padding ->
-        if (isTablet) {
-            // Tablet layout: split view
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            // Carte identité Client
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    ProfileSection(title = "Informations personnelles") {
-                        Column {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(64.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primaryContainer),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        Icons.Default.Person,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        modifier = Modifier.size(32.dp)
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Column {
-                                    Text(
-                                        authName ?: "",
-                                        style = MaterialTheme.typography.titleLarge,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        authEmail ?: "",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.secondary
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(16.dp))
-                            if (userPhone.isNotBlank()) ProfileInfoRow(label = "Téléphone", value = userPhone)
-                            if (userPhone.isNotBlank()) Spacer(modifier = Modifier.height(8.dp))
-                            if (userLanguage.isNotBlank()) ProfileInfoRow(label = "Langue", value = userLanguage)
-                            Spacer(modifier = Modifier.height(12.dp))
-                            OutlinedButton(
-                                onClick = { showEditProfileDialog = true },
-                                modifier = Modifier.fillMaxWidth()
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primaryContainer),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Text("Modifier mes informations")
+                                if (photoUri != null) {
+                                    AsyncImage(
+                                        model = photoUri,
+                                        contentDescription = "Avatar",
+                                        modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Text(
+                                        (userName ?: "U").firstOrNull()?.uppercaseChar()?.toString() ?: "U",
+                                        style = MaterialTheme.typography.headlineMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column {
+                                Text(userName ?: "", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                                Text(userEmail ?: "", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                StatusBadge("Client")
                             }
                         }
-                    }
-                    SecurityCard(
-                        title = "Sécurité du compte",
-                        items = listOf(
-                            SecurityItem("Mot de passe", "Changé il y a 30 jours"),
-                            SecurityItem("Connexion sécurisée", "Activée"),
-                            SecurityItem("Dernière connexion", "Aujourd'hui à 10:30")
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Spacer(modifier = Modifier.height(16.dp))
                         OutlinedButton(
-                            onClick = { showChangePasswordDialog = true },
-                            modifier = Modifier.weight(1f)
+                            onClick = { showEditProfile = true },
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Icon(Icons.Default.Lock, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Changer mot de passe")
+                            Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Modifier photo et nom")
                         }
-                        OutlinedButton(
-                            onClick = {},
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text("Sécurité renforcée")
-                        }
-                    }
-                }
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
-                ) {
-                    ProfileSection(title = "Préférences") {
-                        PreferenceToggle(
-                            label = "Notifications de nouveaux messages",
-                            checked = notificationsEnabled,
-                            onCheckedChange = { 
-                                notificationsEnabled = it
-                                authViewModel.updateNotifications(it, paymentNotificationsEnabled)
-                            }
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        PreferenceToggle(
-                            label = "Notifications d'actions requises",
-                            checked = paymentNotificationsEnabled,
-                            onCheckedChange = { 
-                                paymentNotificationsEnabled = it
-                                authViewModel.updateNotifications(notificationsEnabled, it)
-                            }
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        PreferenceToggle(
-                            label = "Notifications de paiements",
-                            checked = paymentNotificationsEnabled,
-                            onCheckedChange = { 
-                                paymentNotificationsEnabled = it
-                                authViewModel.updateNotifications(notificationsEnabled, it)
-                            }
-                        )
-                    }
-                    ProfileSection(title = "Documents & historique") {
-                        ProfileActionItem(
-                            label = "Mes dossiers (archives)",
-                            icon = Icons.Default.Person,
-                            onClick = {}
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        ProfileActionItem(
-                            label = "Reçus de paiement",
-                            icon = Icons.Default.Person,
-                            onClick = {}
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        ProfileActionItem(
-                            label = "Documents légaux",
-                            icon = Icons.Default.Person,
-                            onClick = {}
-                        )
-                    }
-                    ProfileSection(title = "Aide & support") {
-                        ProfileActionItem(
-                            label = "Centre d'aide / FAQ",
-                            icon = Icons.Default.Help,
-                            onClick = {}
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        ProfileActionItem(
-                            label = "Contact support",
-                            icon = Icons.Default.Person,
-                            onClick = {}
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        ProfileActionItem(
-                            label = "Mentions légales",
-                            icon = Icons.Default.Person,
-                            onClick = {}
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        ProfileActionItem(
-                            label = "Politique de confidentialité",
-                            icon = Icons.Default.Person,
-                            onClick = {}
-                        )
-                    }
-                    OutlinedButton(
-                        onClick = { showDeleteAccountDialog = true },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Demander la suppression de compte")
-                    }
-                    Button(
-                        onClick = onLogout,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error
-                        )
-                    ) {
-                        Icon(Icons.Default.ExitToApp, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Déconnexion")
                     }
                 }
             }
-        } else {
-            // Mobile layout
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                // Carte identité
-                item {
-                    ProfileSection(title = "Informations personnelles") {
-                        Column {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(64.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primaryContainer),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        Icons.Default.Person,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        modifier = Modifier.size(32.dp)
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Column {
-                                    Text(
-                                        userName,
-                                        style = MaterialTheme.typography.titleLarge,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        authEmail ?: "",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.secondary
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(16.dp))
-                            if (userPhone.isNotBlank()) ProfileInfoRow(label = "Téléphone", value = userPhone)
-                            if (userPhone.isNotBlank()) Spacer(modifier = Modifier.height(8.dp))
-                            if (userLanguage.isNotBlank()) ProfileInfoRow(label = "Langue", value = userLanguage)
-                            Spacer(modifier = Modifier.height(12.dp))
-                            OutlinedButton(
-                                onClick = { showEditProfileDialog = true },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text("Modifier mes informations")
-                            }
-                        }
-                    }
-                }
 
-                // Sécurité du compte
-                item {
-                    SecurityCard(
-                        title = "Sécurité du compte",
-                        items = listOf(
-                            SecurityItem("Mot de passe", "Changé il y a 30 jours"),
-                            SecurityItem("Connexion sécurisée", "Activée"),
-                            SecurityItem("Dernière connexion", "Aujourd'hui à 10:30")
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(
-                            onClick = { showChangePasswordDialog = true },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Icon(Icons.Default.Lock, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Changer mot de passe")
-                        }
-                        OutlinedButton(
-                            onClick = {},
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text("Sécurité renforcée")
-                        }
-                    }
+            item {
+                ProfileSection(title = "Sécurité") {
+                    ProfileActionItem(label = "Changer mot de passe", icon = Icons.Default.Lock, onClick = { showChangePasswordDialog = true })
                 }
-
-                // Préférences
-                item {
-                    ProfileSection(title = "Préférences") {
-                        PreferenceToggle(
-                            label = "Notifications de nouveaux messages",
-                            checked = notificationsEnabled,
-                            onCheckedChange = { 
-                                notificationsEnabled = it
-                                authViewModel.updateNotifications(it, paymentNotificationsEnabled)
-                            }
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        PreferenceToggle(
-                            label = "Notifications d'actions requises",
-                            checked = paymentNotificationsEnabled,
-                            onCheckedChange = { 
-                                paymentNotificationsEnabled = it
-                                authViewModel.updateNotifications(notificationsEnabled, it)
-                            }
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        PreferenceToggle(
-                            label = "Notifications de paiements",
-                            checked = paymentNotificationsEnabled,
-                            onCheckedChange = { 
-                                paymentNotificationsEnabled = it
-                                authViewModel.updateNotifications(notificationsEnabled, it)
-                            }
-                        )
-                    }
-                }
-
-                // Documents & historique
-                item {
-                    ProfileSection(title = "Documents & historique") {
-                        ProfileActionItem(
-                            label = "Mes dossiers (archives)",
-                            icon = Icons.Default.Person,
-                            onClick = {}
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        ProfileActionItem(
-                            label = "Reçus de paiement",
-                            icon = Icons.Default.Person,
-                            onClick = {}
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        ProfileActionItem(
-                            label = "Documents légaux",
-                            icon = Icons.Default.Person,
-                            onClick = {}
-                        )
-                    }
-                }
-
-                // Aide & support
-                item {
-                    ProfileSection(title = "Aide & support") {
-                        ProfileActionItem(
-                            label = "Centre d'aide / FAQ",
-                            icon = Icons.Default.Help,
-                            onClick = {}
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        ProfileActionItem(
-                            label = "Contact support",
-                            icon = Icons.Default.Person,
-                            onClick = {}
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        ProfileActionItem(
-                            label = "Mentions légales",
-                            icon = Icons.Default.Person,
-                            onClick = {}
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        ProfileActionItem(
-                            label = "Politique de confidentialité",
-                            icon = Icons.Default.Person,
-                            onClick = {}
-                        )
-                    }
-                }
-
-                // Actions secondaires
-                item {
-                    OutlinedButton(
-                        onClick = { showDeleteAccountDialog = true },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Demander la suppression de compte")
-                    }
-                }
-
-                item {
-                    Button(
-                        onClick = onLogout,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error
-                        )
-                    ) {
-                        Icon(Icons.Default.ExitToApp, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Déconnexion")
-                    }
-                }
-
-                item { Spacer(modifier = Modifier.height(80.dp)) }
             }
+
+            item {
+                Button(
+                    onClick = onLogout,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Icon(Icons.Default.ExitToApp, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Déconnexion")
+                }
+            }
+            
+            item { Spacer(modifier = Modifier.height(80.dp)) }
         }
-    }
-
-    // Dialogs
-    if (showEditProfileDialog) {
-        EditProfileDialog(
-            currentName = userName,
-            currentEmail = authEmail ?: "",
-            currentPhone = userPhone,
-            currentLanguage = userLanguage,
-            onDismiss = { showEditProfileDialog = false },
-            onSave = { name, phone, language ->
-                authViewModel.updateProfile(name, phone, language,
-                    onSuccess = {
-                        userName = name
-                        userPhone = phone
-                        userLanguage = language
-                        showEditProfileDialog = false
-                    },
-                    onError = { error ->
-                        // Show error
-                    }
-                )
-            }
-        )
     }
 
     if (showChangePasswordDialog) {
         ChangePasswordDialog(
             onDismiss = { showChangePasswordDialog = false },
-            onChangePassword = { currentPassword, newPassword ->
-                authViewModel.changePassword(currentPassword, newPassword,
-                    onSuccess = {
-                        showChangePasswordDialog = false
-                    },
-                    onError = { error ->
-                        // Show error in dialog
-                    }
-                )
+            onChangePassword = { current, new ->
+                authViewModel.changePassword(current, new, onSuccess = { showChangePasswordDialog = false })
             }
         )
     }
@@ -469,17 +162,7 @@ fun ClientProfileScreen(
     if (showDeleteAccountDialog) {
         DeleteAccountDialog(
             onDismiss = { showDeleteAccountDialog = false },
-            onDeleteAccount = {
-                authViewModel.deleteAccount(
-                    onSuccess = {
-                        showDeleteAccountDialog = false
-                        onLogout()
-                    },
-                    onError = { error ->
-                        // Show error
-                    }
-                )
-            }
+            onDeleteAccount = { authViewModel.deleteAccount(onSuccess = { onLogout() }) }
         )
     }
 }

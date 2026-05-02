@@ -39,6 +39,9 @@ class DossierViewModel(val repository: DossierRepository) : ViewModel() {
     private val _selectedAdminId = MutableStateFlow<String?>(null)
     val selectedAdminId: StateFlow<String?> = _selectedAdminId
 
+    private val _targetDossierId = MutableStateFlow<String?>(null)
+    val targetDossierId: StateFlow<String?> = _targetDossierId
+
     init {
         refresh()
         loadAdmins()
@@ -67,6 +70,10 @@ class DossierViewModel(val repository: DossierRepository) : ViewModel() {
         _selectedAdminId.value = id
     }
 
+    fun navigateToDossier(id: String?) {
+        _targetDossierId.value = id
+    }
+
     fun createDossier(type: String, formData: Map<String, String>) {
         viewModelScope.launch {
             _createState.value = CreateDossierState.Loading
@@ -79,21 +86,18 @@ class DossierViewModel(val repository: DossierRepository) : ViewModel() {
         }
     }
 
-    fun resetCreateState() {
-        _createState.value = CreateDossierState.Idle
+    /**
+     * Sauvegarde un brouillon localement.
+     */
+    fun saveDraft(type: String, formData: Map<String, String>) {
+        viewModelScope.launch {
+            // Logique de sauvegarde locale (Room ou Preferences)
+            // Pour l'instant on garde ça en placeholder pour la compilation
+        }
     }
 
-    fun saveDraft(type: String, formData: Map<String, String>) {
-        // Pour l'instant, sauvegarde locale dans SharedPreferences
-        // Plus tard, on pourra envoyer à l'API pour sauvegarde côté serveur
-        viewModelScope.launch {
-            try {
-                // TODO: Implémenter la sauvegarde locale (SharedPreferences) ou API
-                // repository.saveDraft(type, formData)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+    fun resetCreateState() {
+        _createState.value = CreateDossierState.Idle
     }
 }
 

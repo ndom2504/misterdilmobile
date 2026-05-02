@@ -22,14 +22,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.misterdil.utils.FILE_MSG_PREFIX
+import com.example.misterdil.utils.getFileName
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.misterdil.data.models.Conversation
 import com.example.misterdil.data.models.Message
+import com.example.misterdil.ui.components.*
 import com.example.misterdil.ui.viewmodels.AuthViewModel
 import com.example.misterdil.ui.viewmodels.ChatViewModel
 
@@ -43,19 +48,21 @@ fun AdminScreen(
     modifier: Modifier = Modifier
 ) {
     val userName by authViewModel.userName.collectAsState()
+    val userId by authViewModel.userId.collectAsState()
     val conversations by chatViewModel.conversations.collectAsState()
     val messages by chatViewModel.messages.collectAsState()
     var selectedConvId by remember { mutableStateOf<String?>(null) }
     var showProfile by remember { mutableStateOf(false) }
+    val photoUri by authViewModel.photoUri.collectAsState()
 
     LaunchedEffect(Unit) { chatViewModel.refreshConversations() }
 
     if (showProfile) {
-        val photoUri by authViewModel.photoUri.collectAsState()
         ProfileScreen(
             repository = chatViewModel.dossierRepository,
             currentName = userName ?: "Admin",
             currentAvatarUrl = photoUri,
+            userId = userId ?: "admin", // Correction: passage du userId
             onBack = { showProfile = false },
             onSaveSuccess = { newName, newAvatar ->
                 authViewModel.updateNameLocally(newName)
@@ -66,6 +73,7 @@ fun AdminScreen(
     } else if (selectedConvId == null) {
         AdminDashboard(
             userName = userName,
+            photoUri = photoUri,
             conversations = conversations,
             modifier = modifier,
             onSelectClient = { id ->
@@ -92,6 +100,7 @@ fun AdminScreen(
 @Composable
 private fun AdminDashboard(
     userName: String?,
+    photoUri: String?,
     conversations: List<Conversation>,
     onSelectClient: (String) -> Unit,
     onProfileClick: () -> Unit,
@@ -104,9 +113,8 @@ private fun AdminDashboard(
 
     val filteredConversations = conversations.filter { conv ->
         val statusMatch = statusFilter == "Tous" || when (statusFilter) {
-            "En attente" -> conv.lastMessage == "Dossier soumis"
-            "Soumis" -> conv.lastMessage == "Dossier soumis"
-            "En cours" -> conv.lastMessage != "Dossier soumis" && conv.unreadCount > 0
+            "En attente", "Soumis" -> conv.lastMessage.contains("soumis", ignoreCase = true)
+            "En cours" -> !conv.lastMessage.contains("soumis", ignoreCase = true) && conv.unreadCount > 0
             "Complété" -> conv.lastMessage.contains("Complété", ignoreCase = true)
             else -> true
         }
@@ -120,7 +128,16 @@ private fun AdminDashboard(
                 title = { Text("Espace Conseiller", fontWeight = FontWeight.Bold) },
                 actions = {
                     IconButton(onClick = onProfileClick) {
-                        Icon(Icons.Default.Person, contentDescription = "Profil")
+                        if (!photoUri.isNullOrEmpty()) {
+                            AsyncImage(
+                                model = photoUri,
+                                contentDescription = "Profil",
+                                modifier = Modifier.size(32.dp).clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Icon(Icons.Default.AccountCircle, contentDescription = "Profil")
+                        }
                     }
                 }
             )
@@ -139,12 +156,21 @@ private fun AdminDashboard(
                         modifier = Modifier.size(56.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            (userName?.firstOrNull() ?: 'A').toString().uppercase(),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        if (!photoUri.isNullOrEmpty()) {
+                            AsyncImage(
+                                model = photoUri,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Text(
+                                (userName?.firstOrNull() ?: 'A').toString().uppercase(),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
                     }
                     Spacer(Modifier.width(12.dp))
                     Column {
@@ -158,14 +184,14 @@ private fun AdminDashboard(
                 // Stats
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     StatChip("Clients", conversations.size.toString(), MaterialTheme.colorScheme.primaryContainer, Modifier.weight(1f))
-                    StatChip("En attente", conversations.count { it.lastMessage == "Dossier soumis" }.toString(), MaterialTheme.colorScheme.tertiaryContainer, Modifier.weight(1f))
+                    StatChip("En attente", conversations.count { it.lastMessage.contains("soumis", ignoreCase = true) }.toString(), MaterialTheme.colorScheme.tertiaryContainer, Modifier.weight(1f))
                     StatChip("Actifs", conversations.count { it.unreadCount > 0 }.toString(), MaterialTheme.colorScheme.secondaryContainer, Modifier.weight(1f))
                 }
             }
 
             item {
-                // Status filter
-                Column {
+                // Filters
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Filtrer par statut", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         lazyItems(statusOptions) { status ->
@@ -176,12 +202,7 @@ private fun AdminDashboard(
                             )
                         }
                     }
-                }
-            }
-
-            item {
-                // Type filter
-                Column {
+                    
                     Text("Filtrer par type", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         lazyItems(typeOptions) { type ->
@@ -209,7 +230,7 @@ private fun AdminDashboard(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(Icons.Default.Group, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.secondary)
                             Spacer(Modifier.height(8.dp))
-                            Text("Aucun client ne correspond aux filtres.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary)
+                            Text("Aucun client trouvé.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary)
                         }
                     }
                 }
@@ -240,12 +261,21 @@ private fun ClientCard(conv: Conversation, onClick: () -> Unit) {
                 modifier = Modifier.size(48.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    conv.clientName.firstOrNull()?.toString()?.uppercase() ?: "C",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                if (!conv.avatarUrl.isNullOrEmpty()) {
+                    AsyncImage(
+                        model = conv.avatarUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize().clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Text(
+                        conv.clientName.firstOrNull()?.toString()?.uppercase() ?: "C",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
             }
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
@@ -282,9 +312,8 @@ private fun AdminClientDetailScreen(
     var showActionButtons by remember { mutableStateOf(true) }
     val context = LocalContext.current
 
-    // Cacher les boutons d'action après avoir répondu
     LaunchedEffect(messages.size) {
-        if (messages.any { it.senderId == "admin" && (it.text.contains("accepté", ignoreCase = true) || it.text.contains("rejeté", ignoreCase = true)) }) {
+        if (messages.any { !it.isFromMe && (it.text.contains("accepte") || it.text.contains("rejeté")) }) {
             showActionButtons = false
         }
     }
@@ -294,7 +323,7 @@ private fun AdminClientDetailScreen(
     ) { uri: Uri? ->
         uri?.let {
             val fileName = getFileName(context, it)
-            onSendMessage("$FILE_MSG_PREFIX$fileName")
+            onSendMessage("${'$'}FILE_MSG_PREFIX${'$'}fileName")
         }
     }
 
@@ -308,7 +337,7 @@ private fun AdminClientDetailScreen(
                         value = paymentAmount,
                         onValueChange = { paymentAmount = it },
                         label = { Text("Montant (CAD)") },
-                        leadingIcon = { Text("$", modifier = Modifier.padding(start = 12.dp)) },
+                        leadingIcon = { Text("${'$'}", modifier = Modifier.padding(start = 12.dp)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -324,7 +353,7 @@ private fun AdminClientDetailScreen(
                 Button(onClick = {
                     if (paymentAmount.isNotBlank()) {
                         val desc = paymentDesc.ifBlank { "Frais de service" }
-                        onSendMessage("$PAYMENT_MSG_PREFIX$paymentAmount:$desc")
+                        onSendMessage("${'$'}PAYMENT_MSG_PREFIX${'$'}paymentAmount:${'$'}desc")
                         showPaymentDialog = false
                         paymentAmount = ""
                         paymentDesc = ""
@@ -356,10 +385,9 @@ private fun AdminClientDetailScreen(
         bottomBar = {
             Surface(tonalElevation = 2.dp) {
                 Column {
-                    // Accept/Reject buttons (only show if needed)
                     if (showActionButtons) {
                         Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+                            modifier = Modifier.fillMaxWidth().padding(8.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Button(
@@ -370,8 +398,6 @@ private fun AdminClientDetailScreen(
                                 modifier = Modifier.weight(1f),
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                             ) {
-                                Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Spacer(Modifier.width(8.dp))
                                 Text("Accepter")
                             }
                             Button(
@@ -382,34 +408,25 @@ private fun AdminClientDetailScreen(
                                 modifier = Modifier.weight(1f),
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336))
                             ) {
-                                Icon(Icons.Default.Cancel, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Spacer(Modifier.width(8.dp))
                                 Text("Rejeter")
                             }
                         }
                     }
-                    // Action chips row
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         AssistChip(
                             onClick = { filePickerLauncher.launch(arrayOf("*/*")) },
-                            label = { Text("Fichier", style = MaterialTheme.typography.labelSmall) },
-                            leadingIcon = { Icon(Icons.Default.AttachFile, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                            label = { Text("Fichier") },
+                            leadingIcon = { Icon(Icons.Default.AttachFile, null, Modifier.size(16.dp)) }
                         )
                         AssistChip(
                             onClick = { showPaymentDialog = true },
-                            label = { Text("Paiement", style = MaterialTheme.typography.labelSmall) },
-                            leadingIcon = { Icon(Icons.Default.Payment, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                        )
-                        AssistChip(
-                            onClick = { textState = "📋 Instructions : " },
-                            label = { Text("Instructions", style = MaterialTheme.typography.labelSmall) },
-                            leadingIcon = { Icon(Icons.Default.Assignment, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                            label = { Text("Paiement") },
+                            leadingIcon = { Icon(Icons.Default.Payment, null, Modifier.size(16.dp)) }
                         )
                     }
-                    // Text input row
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(8.dp).imePadding(),
                         verticalAlignment = Alignment.CenterVertically
@@ -418,7 +435,7 @@ private fun AdminClientDetailScreen(
                             value = textState,
                             onValueChange = { textState = it },
                             modifier = Modifier.weight(1f),
-                            placeholder = { Text("Message au client...") },
+                            placeholder = { Text("Répondre au client...") },
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
@@ -435,11 +452,7 @@ private fun AdminClientDetailScreen(
                             },
                             enabled = textState.isNotBlank()
                         ) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.Send,
-                                contentDescription = "Envoyer",
-                                tint = if (textState.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-                            )
+                            Icon(Icons.AutoMirrored.Filled.Send, null)
                         }
                     }
                 }
@@ -459,3 +472,5 @@ private fun AdminClientDetailScreen(
         }
     }
 }
+
+// getFileName et FILE_MSG_PREFIX sont définis dans MessagerieScreen.kt

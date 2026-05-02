@@ -18,5 +18,7 @@ data class Conversation(
     @SerializedName("time")
     val time: String,
     @SerializedName("unread_count")
-    val unreadCount: Int = 0
+    val unreadCount: Int = 0,
+    @SerializedName("avatar_url")
+    val avatarUrl: String? = null
 )

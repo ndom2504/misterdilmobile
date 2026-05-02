@@ -3,7 +3,6 @@ package com.example.misterdil.ui.screens
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,7 +21,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.misterdil.data.repository.DossierRepository
 import kotlinx.coroutines.launch
@@ -34,6 +32,7 @@ fun ProfileScreen(
     repository: DossierRepository,
     currentName: String,
     currentAvatarUrl: String?,
+    userId: String,
     onBack: () -> Unit,
     onSaveSuccess: (name: String, avatarUrl: String?) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
@@ -50,7 +49,9 @@ fun ProfileScreen(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            val dest = File(context.filesDir, "avatar_profile.jpg")
+            // Utilisation de l'ID utilisateur pour isoler le fichier de profil local
+            val fileName = "avatar_${userId.filter { it.isLetterOrDigit() }}.jpg"
+            val dest = File(context.filesDir, fileName)
             context.contentResolver.openInputStream(it)?.use { input ->
                 dest.outputStream().use { out -> input.copyTo(out) }
             }
@@ -170,7 +171,8 @@ fun ProfileScreen(
                         // Always save locally first — guaranteed to work
                         onSaveSuccess(name, avatarUrl)
                         saveSuccess = true
-                        // Try backend silently (skip content:// URIs — only valid on device)
+                        
+                        // Try backend silently
                         val remoteAvatar = if (avatarUrl?.startsWith("content://") == true) null else avatarUrl
                         try {
                             repository.updateProfile(name = name, avatar_url = remoteAvatar)
@@ -193,7 +195,7 @@ fun ProfileScreen(
                     )
                 } else {
                     Text(
-                        "Enregistrer",
+                        "Enregistrer les modifications",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )

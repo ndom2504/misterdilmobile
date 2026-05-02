@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.misterdil.data.models.Dossier
 import com.example.misterdil.data.remote.AdminProfile
+import com.example.misterdil.ui.components.DossierProgressBar
 import com.example.misterdil.ui.viewmodels.DossierViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,9 +46,6 @@ fun HomeScreen(
                 actions = {
                     IconButton(onClick = { viewModel.refresh() }) {
                         Icon(Icons.Default.Refresh, contentDescription = "Actualiser")
-                    }
-                    IconButton(onClick = { /* Notification action */ }) {
-                        Icon(Icons.Default.Notifications, contentDescription = "Notifications")
                     }
                 }
             )
@@ -90,23 +88,22 @@ fun HomeScreen(
                 }
             }
 
-            // Active Cases Summary
             item {
-                Text(
-                    text = "Dossiers en cours",
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Text(text = "Dossiers en cours", style = MaterialTheme.typography.titleMedium)
             }
 
             if (dossiers.isEmpty()) {
                 item {
                     Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                        Text("Aucun dossier trouvé. Tirez pour actualiser.", style = MaterialTheme.typography.bodyMedium)
+                        Text("Aucun dossier trouvé.", style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             } else {
                 items(dossiers) { dossier ->
-                    DossierProgressCard(dossier)
+                    DossierProgressCard(dossier, onClick = {
+                        viewModel.navigateToDossier(dossier.id)
+                        onNavigateTo("dossier/${dossier.id}")
+                    })
                 }
             }
 
@@ -124,28 +121,13 @@ fun AdminSelectionSection(
     val adminColors = listOf(Color(0xFF1565C0), Color(0xFF2E7D32))
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            "Choisissez votre conseiller",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            "Sélectionnez l'un de nos conseillers",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.secondary
-        )
+        Text("Choisissez votre conseiller", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(12.dp))
 
         if (admins.isEmpty()) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 repeat(2) { i ->
-                    AdminCard(
-                        name = "Conseiller ${i + 1}",
-                        index = i,
-                        color = adminColors.getOrElse(i) { Color.Gray },
-                        selected = false,
-                        onClick = {}
-                    )
+                    AdminCard(name = "Conseiller ${i + 1}", index = i, color = adminColors.getOrElse(i) { Color.Gray }, selected = false, onClick = {})
                 }
             }
         } else {
@@ -170,59 +152,22 @@ fun AdminCard(name: String, index: Int, color: Color, selected: Boolean, onClick
     val initial = name.firstOrNull()?.toString() ?: "A"
     ElevatedCard(
         onClick = onClick,
-        modifier = Modifier
-            .width(130.dp)
-            .then(if (selected) Modifier.border(2.dp, color, MaterialTheme.shapes.medium) else Modifier)
+        modifier = Modifier.width(130.dp).then(if (selected) Modifier.border(2.dp, color, MaterialTheme.shapes.medium) else Modifier)
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(color),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = initial,
-                    color = Color.White,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
-                )
+        Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(modifier = Modifier.size(56.dp).clip(CircleShape).background(color), contentAlignment = Alignment.Center) {
+                Text(text = initial, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = name,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center
-            )
-            if (selected) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    "✓ Sélectionné",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = color,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            Text(text = name, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
         }
     }
 }
 
 @Composable
 fun QuickActionCard(label: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
-    ElevatedCard(
-        onClick = onClick,
-        modifier = modifier.height(100.dp)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
+    ElevatedCard(onClick = onClick, modifier = modifier.height(100.dp)) {
+        Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(8.dp))
             Text(label, style = MaterialTheme.typography.labelLarge)
@@ -231,47 +176,18 @@ fun QuickActionCard(label: String, icon: ImageVector, modifier: Modifier = Modif
 }
 
 @Composable
-fun DossierProgressCard(dossier: Dossier) {
-    OutlinedCard(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+fun DossierProgressCard(dossier: Dossier, onClick: () -> Unit) {
+    OutlinedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(dossier.type, style = MaterialTheme.typography.titleLarge)
-                Surface(
-                    shape = MaterialTheme.shapes.small,
-                    color = MaterialTheme.colorScheme.secondaryContainer
-                ) {
-                    Text(
-                        text = dossier.status,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelSmall
-                    )
+                Surface(shape = MaterialTheme.shapes.small, color = MaterialTheme.colorScheme.secondaryContainer) {
+                    Text(text = dossier.status, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall)
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Client: ${dossier.clientName}",
-                style = MaterialTheme.typography.bodyMedium
-            )
             Spacer(modifier = Modifier.height(16.dp))
-            LinearProgressIndicator(
-                progress = { dossier.progress },
-                modifier = Modifier.fillMaxWidth(),
-                strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "${(dossier.progress * 100).toInt()}% complété",
-                modifier = Modifier.align(Alignment.End),
-                style = MaterialTheme.typography.labelSmall
-            )
+            // Utilisation du composant partagé pour corriger le bug 2000%
+            DossierProgressBar(progress = dossier.progress)
         }
     }
 }

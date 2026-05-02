@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
 
   try {
     const users = await sql`
-      SELECT id, email, password_hash, name, role FROM users
+      SELECT id, email, password_hash, name, role, avatar_url FROM users
       WHERE email = ${email.toLowerCase()}
       LIMIT 1
     `;
@@ -31,6 +31,7 @@ module.exports = async (req, res) => {
       email: user.email,
       name: user.name,
       role: user.role,
+      avatar_url: user.avatar_url
     });
   } catch (err) {
     console.error('Login error:', err);

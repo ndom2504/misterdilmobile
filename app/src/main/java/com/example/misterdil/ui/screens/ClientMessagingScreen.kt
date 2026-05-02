@@ -2,14 +2,13 @@ package com.example.misterdil.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AttachFile
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,14 +34,9 @@ fun ClientMessagingScreen(
     val isTablet = configuration.screenWidthDp >= 600
 
     if (isTablet) {
-        // Tablet split view
         Row(modifier = modifier.fillMaxSize()) {
-            // Liste des conversations (gauche)
             Column(
-                modifier = Modifier
-                    .width(300.dp)
-                    .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.surface)
+                modifier = Modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surface)
             ) {
                 ConversationListScreen(
                     conversations = conversations,
@@ -53,9 +47,7 @@ fun ClientMessagingScreen(
                     modifier = Modifier.fillMaxSize()
                 )
             }
-            @OptIn(ExperimentalMaterial3Api::class)
             VerticalDivider()
-            // Conversation détail (droite)
             if (selectedConversation != null) {
                 ConversationDetailScreen(
                     conversation = selectedConversation!!,
@@ -65,20 +57,12 @@ fun ClientMessagingScreen(
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "Sélectionnez une conversation",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Sélectionnez une conversation", color = MaterialTheme.colorScheme.secondary)
                 }
             }
         }
     } else {
-        // Mobile navigation
         if (selectedConversation == null) {
             ConversationListScreen(
                 conversations = conversations,
@@ -108,43 +92,26 @@ fun ConversationListScreen(
     modifier: Modifier = Modifier
 ) {
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Messagerie", fontWeight = FontWeight.Bold) }
-            )
-        },
+        topBar = { TopAppBar(title = { Text("Messagerie", fontWeight = FontWeight.Bold) }) },
         modifier = modifier
     ) { padding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Tri: messages non lus en haut
-            val sortedConversations = conversations.sortedByDescending { it.unreadCount > 0 }
-
-            if (sortedConversations.isEmpty()) {
-                item {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            "Aucune conversation.",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
+            if (conversations.isEmpty()) {
+                item { Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                    Text("Aucune conversation.")
+                }}
             } else {
-                items(sortedConversations) { conv ->
+                items(conversations) { conv ->
                     ConversationItem(
                         dossierType = conv.projectName,
                         lastMessage = conv.lastMessage,
-                        timestamp = "10:30",
+                        timestamp = conv.time,
                         hasUnread = conv.unreadCount > 0,
-                        status = "En cours",
+                        status = "Conseiller",
+                        avatarUrl = conv.avatarUrl,
                         onClick = { onConversationClick(conv) }
                     )
                 }
@@ -169,81 +136,39 @@ fun ConversationDetailScreen(
         topBar = {
             TopAppBar(
                 title = { Text(conversation.projectName, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour")
-                    }
-                },
-                actions = {
-                    TextButton(onClick = { onNavigateToDossier(conversation.id) }) {
-                        Text("Voir le dossier")
-                    }
-                }
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } },
+                actions = { TextButton(onClick = { onNavigateToDossier(conversation.id) }) { Text("Voir le dossier") } }
             )
         },
         modifier = modifier
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            // Messages
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                modifier = Modifier.weight(1f).fillMaxWidth().padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Message système
-                item {
-                    MessageBubble(
-                        text = "Dossier créé",
-                        sender = MessageSender.SYSTEM,
-                        timestamp = conversation.time
-                    )
-                }
-
-                // Messages de la conversation
                 items(messages) { msg ->
                     MessageBubble(
                         text = msg.text,
                         sender = if (msg.isFromMe) MessageSender.CLIENT else MessageSender.ADMIN,
-                        timestamp = msg.timestamp.toString()
+                        timestamp = "",
+                        avatarUrl = if (!msg.isFromMe) conversation.avatarUrl else null
                     )
                 }
             }
-
-            // Zone de réponse
-            Divider()
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = { /* Attach file */ }) {
-                    Icon(Icons.Default.AttachFile, contentDescription = "Joindre")
-                }
+            HorizontalDivider()
+            Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { /* File picker */ }) { Icon(Icons.Default.AttachFile, null) }
                 OutlinedTextField(
                     value = messageText,
                     onValueChange = { messageText = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Écrire un message...") },
-                    singleLine = true,
+                    placeholder = { Text("Écrire...") },
                     shape = RoundedCornerShape(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                IconButton(
-                    onClick = {
-                        if (messageText.isNotBlank()) {
-                            viewModel.sendMessage(messageText)
-                            messageText = ""
-                        }
-                    }
-                ) {
-                    Icon(Icons.Default.Send, contentDescription = "Envoyer")
+                IconButton(onClick = { if (messageText.isNotBlank()) { viewModel.sendMessage(messageText); messageText = "" } }) {
+                    Icon(Icons.AutoMirrored.Filled.Send, null)
                 }
             }
         }

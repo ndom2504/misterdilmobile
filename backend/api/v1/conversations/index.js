@@ -4,18 +4,36 @@ const { withAuth } = require('../../../lib/middleware');
 module.exports = withAuth(async (req, res) => {
   if (req.method === 'GET') {
     try {
-      // Admins: voir toutes leurs conversations assignées
-      // Clients: voir seulement leurs conversations
       const isAdmin = req.user.role === 'admin';
+
       const conversations = isAdmin
         ? await sql`
-            SELECT c.id, u.name AS client_name, c.project_name, c.last_message, c.time, c.unread_count
+            SELECT
+              c.id,
+              u.name AS client_name,
+              u.avatar_url AS avatar_url,
+              c.project_name,
+              c.last_message,
+              c.time,
+              c.unread_count
             FROM conversations c
             JOIN users u ON u.id = c.user_id
-            WHERE c.admin_id = ${req.user.userId} ORDER BY c.created_at DESC`
+            WHERE c.admin_id = ${req.user.userId}
+            ORDER BY c.created_at DESC`
         : await sql`
-            SELECT id, client_name, project_name, last_message, time, unread_count
-            FROM conversations WHERE user_id = ${req.user.userId} ORDER BY created_at DESC`;
+            SELECT
+              c.id,
+              u.name AS client_name,
+              u.avatar_url AS avatar_url,
+              c.project_name,
+              c.last_message,
+              c.time,
+              c.unread_count
+            FROM conversations c
+            JOIN users u ON u.id = c.admin_id
+            WHERE c.user_id = ${req.user.userId}
+            ORDER BY c.created_at DESC`;
+
       return res.status(200).json(conversations);
     } catch (err) {
       console.error('Get conversations error:', err);
@@ -44,7 +62,6 @@ module.exports = withAuth(async (req, res) => {
         RETURNING id, client_name, project_name, last_message, time, unread_count
       `;
 
-      // Send automatic message from the client
       const autoText = '📁 Dossier soumis : ' + project_name + '\n\nBonjour, je viens de soumettre mon dossier d\'immigration. Merci de me contacter pour les prochaines étapes.';
       await sql`
         INSERT INTO messages (id, conversation_id, sender_id, text, timestamp, is_from_me)
@@ -58,10 +75,10 @@ module.exports = withAuth(async (req, res) => {
         )
       `;
 
-      // Update dossier status to 'Soumis' if dossier_id provided
       if (dossier_id) {
+        // Correction de la progression : 0.2 (20%) au lieu de 20.0 (2000%)
         await sql`
-          UPDATE dossiers SET status = 'Soumis', progress = 20.0, last_update = to_char(NOW(), 'DD/MM/YYYY')
+          UPDATE dossiers SET status = 'Soumis', progress = 0.2, last_update = to_char(NOW(), 'DD/MM/YYYY')
           WHERE id = ${dossier_id}
         `;
       }

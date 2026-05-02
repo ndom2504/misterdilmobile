@@ -2,14 +2,13 @@ package com.example.misterdil.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AttachFile
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,14 +34,9 @@ fun AdminMessagingScreen(
     val isTablet = configuration.screenWidthDp >= 600
 
     if (isTablet) {
-        // Tablet split view
         Row(modifier = modifier.fillMaxSize()) {
-            // Inbox (gauche)
             Column(
-                modifier = Modifier
-                    .width(300.dp)
-                    .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.surface)
+                modifier = Modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surface)
             ) {
                 AdminInboxScreen(
                     conversations = conversations,
@@ -53,9 +47,7 @@ fun AdminMessagingScreen(
                     modifier = Modifier.fillMaxSize()
                 )
             }
-            @OptIn(ExperimentalMaterial3Api::class)
             VerticalDivider()
-            // Conversation détail (droite)
             if (selectedConversation != null) {
                 AdminConversationDetailScreen(
                     conversation = selectedConversation!!,
@@ -65,20 +57,12 @@ fun AdminMessagingScreen(
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "Sélectionnez une conversation",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Sélectionnez une conversation", color = MaterialTheme.colorScheme.secondary)
                 }
             }
         }
     } else {
-        // Mobile navigation
         if (selectedConversation == null) {
             AdminInboxScreen(
                 conversations = conversations,
@@ -108,49 +92,27 @@ fun AdminInboxScreen(
     modifier: Modifier = Modifier
 ) {
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Inbox Admin", fontWeight = FontWeight.Bold) }
-            )
-        },
+        topBar = { TopAppBar(title = { Text("Messages Clients", fontWeight = FontWeight.Bold) }) },
         modifier = modifier
     ) { padding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Tri: messages non lus + dossiers bloqués en premier
-            val sortedConversations = conversations.sortedWith(compareByDescending<Conversation> { it.unreadCount > 0 }.thenBy { it.projectName })
-
+            val sortedConversations = conversations.sortedByDescending { it.unreadCount > 0 }
             if (sortedConversations.isEmpty()) {
-                item {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            "Aucune conversation.",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
+                item { Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                    Text("Aucune conversation.")
+                }}
             } else {
                 items(sortedConversations) { conv ->
-                    val indicator = when {
-                        conv.unreadCount > 0 -> "🔴 Action requise"
-                        conv.projectName.contains("Bloqué") -> "🟡 En attente réponse"
-                        else -> ""
-                    }
-                    
                     ConversationItem(
-                        dossierType = conv.clientName,
+                        dossierType = conv.projectName,
                         lastMessage = conv.lastMessage,
-                        timestamp = "10:30",
+                        timestamp = conv.time,
                         hasUnread = conv.unreadCount > 0,
-                        status = indicator.ifEmpty { "En cours" },
+                        status = "En cours",
+                        avatarUrl = conv.avatarUrl,
                         onClick = { onConversationClick(conv) }
                     )
                 }
@@ -175,96 +137,36 @@ fun AdminConversationDetailScreen(
         topBar = {
             TopAppBar(
                 title = { Text(conversation.clientName, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour")
-                    }
-                },
-                actions = {
-                    TextButton(onClick = { onNavigateToDossier(conversation.id) }) {
-                        Text("Ouvrir le dossier")
-                    }
-                }
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } },
+                actions = { TextButton(onClick = { onNavigateToDossier(conversation.id) }) { Text("Dossier") } }
             )
         },
         modifier = modifier
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            // Messages
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Message système
-                item {
-                    MessageBubble(
-                        text = "Dossier créé",
-                        sender = MessageSender.SYSTEM,
-                        timestamp = conversation.time
-                    )
-                }
-
-                // Messages de la conversation
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(messages) { msg ->
                     MessageBubble(
                         text = msg.text,
                         sender = if (msg.isFromMe) MessageSender.ADMIN else MessageSender.CLIENT,
-                        timestamp = msg.timestamp.toString()
+                        timestamp = "",
+                        avatarUrl = if (!msg.isFromMe) conversation.avatarUrl else null
                     )
                 }
             }
-
-            // Actions rapides Admin
-            Divider()
-            AdminQuickActions(
-                onRequestDocument = {
-                    viewModel.sendMessage("📄 Demande de document : Veuillez fournir...")
-                },
-                onRequestCorrection = {
-                    viewModel.sendMessage("✏️ Demande de correction : Veuillez modifier...")
-                },
-                onValidateStep = {
-                    viewModel.sendMessage("✅ Étape validée. Vous pouvez continuer.")
-                },
-                modifier = Modifier.padding(16.dp)
-            )
-
-            // Zone de réponse
-            Divider()
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = { /* Attach file */ }) {
-                    Icon(Icons.Default.AttachFile, contentDescription = "Joindre")
-                }
+            HorizontalDivider()
+            Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { /* File picker */ }) { Icon(Icons.Default.AttachFile, null) }
                 OutlinedTextField(
                     value = messageText,
                     onValueChange = { messageText = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Écrire un message...") },
-                    singleLine = true,
+                    placeholder = { Text("Répondre au client...") },
                     shape = RoundedCornerShape(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                IconButton(
-                    onClick = {
-                        if (messageText.isNotBlank()) {
-                            viewModel.sendMessage(messageText)
-                            messageText = ""
-                        }
-                    }
-                ) {
-                    Icon(Icons.Default.Send, contentDescription = "Envoyer")
+                IconButton(onClick = { if (messageText.isNotBlank()) { viewModel.sendMessage(messageText); messageText = "" } }) {
+                    Icon(Icons.AutoMirrored.Filled.Send, null)
                 }
             }
         }

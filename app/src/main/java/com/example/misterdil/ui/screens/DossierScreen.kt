@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.misterdil.data.models.Dossier
+import com.example.misterdil.ui.components.StatusBadge
 import com.example.misterdil.ui.viewmodels.ChatViewModel
 import com.example.misterdil.ui.viewmodels.DossierViewModel
 
@@ -24,9 +25,21 @@ fun DossierScreen(viewModel: DossierViewModel, chatViewModel: ChatViewModel, mod
     var selectedFilter by remember { mutableStateOf("Tous") }
     val filters = listOf("Tous", "Entrée Express", "Permis d'études", "Plan d'affaires", "Regroupement familial", "Visa visiteur", "Résidence permanente")
     val dossiers by viewModel.dossiers.collectAsState()
+    val targetDossierId by viewModel.targetDossierId.collectAsState()
 
     var selectedDossier by remember { mutableStateOf<Dossier?>(null) }
     var showCreate by remember { mutableStateOf(false) }
+
+    // Gérer l'ouverture automatique depuis l'accueil
+    LaunchedEffect(targetDossierId, dossiers) {
+        if (targetDossierId != null && dossiers.isNotEmpty()) {
+            val dossier = dossiers.find { it.id == targetDossierId }
+            if (dossier != null) {
+                selectedDossier = dossier
+                viewModel.navigateToDossier(null) // Reset après ouverture
+            }
+        }
+    }
 
     if (showCreate) {
         CreateDossierScreen(
@@ -44,30 +57,21 @@ fun DossierScreen(viewModel: DossierViewModel, chatViewModel: ChatViewModel, mod
                 TopAppBar(
                     title = { Text(if (isAdmin) "Tous les dossiers" else "Mes Dossiers", fontWeight = FontWeight.Bold) },
                     actions = {
-                        IconButton(onClick = { /* Search */ }) {
-                            Icon(Icons.Default.Search, contentDescription = "Rechercher")
-                        }
-                        IconButton(onClick = { /* Filter */ }) {
-                            Icon(Icons.Default.FilterList, contentDescription = "Filtrer")
-                        }
+                        IconButton(onClick = { /* Search */ }) { Icon(Icons.Default.Search, null) }
+                        IconButton(onClick = { /* Filter */ }) { Icon(Icons.Default.FilterList, null) }
                     }
                 )
             },
             floatingActionButton = {
                 if (!isAdmin) {
                     FloatingActionButton(onClick = { showCreate = true }) {
-                        Icon(Icons.Default.Add, contentDescription = "Nouveau dossier")
+                        Icon(Icons.Default.Add, contentDescription = "Nouveau")
                     }
                 }
             },
             modifier = modifier
         ) { padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-            ) {
-                // Filters Row
+            Column(modifier = Modifier.fillMaxSize().padding(padding)) {
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -81,24 +85,17 @@ fun DossierScreen(viewModel: DossierViewModel, chatViewModel: ChatViewModel, mod
                     }
                 }
 
-                // Dossiers List
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    val filteredDossiers = if (selectedFilter == "Tous") {
-                        dossiers
-                    } else {
-                        dossiers.filter { it.type == selectedFilter }
-                    }
+                    val filteredDossiers = if (selectedFilter == "Tous") dossiers else dossiers.filter { it.type == selectedFilter }
 
                     if (filteredDossiers.isEmpty()) {
-                        item {
-                            Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                                Text("Aucun dossier trouvé.", style = MaterialTheme.typography.bodyMedium)
-                            }
-                        }
+                        item { Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                            Text("Aucun dossier trouvé.")
+                        }}
                     } else {
                         items(filteredDossiers) { dossier ->
                             DossierItemCard(dossier, onClick = { selectedDossier = dossier })
@@ -108,97 +105,25 @@ fun DossierScreen(viewModel: DossierViewModel, chatViewModel: ChatViewModel, mod
             }
         }
     } else {
-        // Affichage du détail selon le rôle
         if (isAdmin) {
-            AdminDossierScreen(
-                dossier = selectedDossier!!,
-                onBack = { selectedDossier = null },
-                modifier = modifier,
-                dossierViewModel = viewModel
-            )
+            AdminDossierScreen(dossier = selectedDossier!!, onBack = { selectedDossier = null }, modifier = modifier, dossierViewModel = viewModel)
         } else {
-            ClientDossierScreen(
-                dossier = selectedDossier!!,
-                onBack = { selectedDossier = null },
-                modifier = modifier,
-                dossierViewModel = viewModel
-            )
+            ClientDossierScreen(dossier = selectedDossier!!, onBack = { selectedDossier = null }, modifier = modifier, dossierViewModel = viewModel)
         }
     }
 }
 
 @Composable
 fun DossierItemCard(dossier: Dossier, onClick: () -> Unit) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        text = dossier.id,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                    Text(
-                        text = dossier.clientName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+    ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(dossier.clientName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 StatusBadge(dossier.status)
             }
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Text(
-                text = dossier.type,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            
+            Text(dossier.type, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Dernière mise à jour: ${dossier.lastUpdate}",
-                    style = MaterialTheme.typography.labelSmall
-                )
-                TextButton(onClick = onClick) {
-                    Text("Ouvrir")
-                }
-            }
+            Text("Mise à jour : ${dossier.lastUpdate}", style = MaterialTheme.typography.labelSmall)
         }
-    }
-}
-
-@Composable
-fun StatusBadge(status: String) {
-    val containerColor = when (status) {
-        "Actif" -> MaterialTheme.colorScheme.primaryContainer
-        "En attente" -> MaterialTheme.colorScheme.tertiaryContainer
-        "Complété" -> MaterialTheme.colorScheme.secondaryContainer
-        else -> MaterialTheme.colorScheme.surfaceVariant
-    }
-    
-    Surface(
-        color = containerColor,
-        shape = MaterialTheme.shapes.extraSmall
-    ) {
-        Text(
-            text = status,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-            style = MaterialTheme.typography.labelSmall
-        )
     }
 }

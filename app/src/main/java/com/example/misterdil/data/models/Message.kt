@@ -22,5 +22,8 @@ data class Message(
     val timestamp: Long,
     @ColumnInfo(name = "is_from_me")
     @SerializedName("is_from_me")
-    val isFromMe: Boolean
+    val isFromMe: Boolean,
+    @ColumnInfo(name = "sender_avatar")
+    @SerializedName("sender_avatar")
+    val senderAvatar: String? = null
 )

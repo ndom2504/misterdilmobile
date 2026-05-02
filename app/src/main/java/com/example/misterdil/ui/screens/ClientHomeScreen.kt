@@ -17,16 +17,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.misterdil.data.models.Dossier
 import com.example.misterdil.ui.components.ChecklistItem
 import com.example.misterdil.ui.components.ChecklistStatus
@@ -46,143 +45,144 @@ fun ClientHomeScreen(
 ) {
     val dossiers by dossierViewModel.dossiers.collectAsState()
     val activeDossiers = dossiers.filter { it.status != "Complété" }
+    val photoUri by authViewModel.photoUri.collectAsState()
     val configuration = LocalConfiguration.current
     val isTablet = configuration.screenWidthDp >= 600
-    var showProfile by remember { mutableStateOf(false) }
 
-    if (showProfile) {
-        ProfileScreen(
-            repository = dossierViewModel.repository,
-            currentName = userName ?: "Utilisateur",
-            currentAvatarUrl = null,
-            onBack = { showProfile = false },
-            modifier = modifier
-        )
-    } else {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Accueil", fontWeight = FontWeight.Bold) },
-                    actions = {
-                        IconButton(onClick = { showProfile = true }) {
-                            Icon(Icons.Default.Person, contentDescription = "Profil")
-                        }
-                        IconButton(onClick = { dossierViewModel.refresh() }) {
-                            Icon(Icons.Default.Refresh, contentDescription = "Actualiser")
-                        }
-                    }
-                )
-            },
-            modifier = modifier
-        ) { padding ->
-            if (isTablet) {
-                // Tablet layout: 2 columns
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(20.dp)
-                    ) {
-                        // Header Client
-                        ClientHeader(
-                            userName = userName,
-                            activeDossiersCount = activeDossiers.size,
-                            hasPendingAction = dossiers.any { it.status == "En attente" || it.progress < 1.0f }
-                        )
-
-                        // Carte "Mon dossier principal"
-                        if (dossiers.isNotEmpty()) {
-                            val mainDossier = dossiers.first()
-                            MainDossierCard(
-                                dossierType = mainDossier.type,
-                                status = mainDossier.status,
-                                progress = mainDossier.progress,
-                                ctaText = getCTAForDossier(mainDossier),
-                                onCtaClick = { onNavigateTo("dossier/${mainDossier.id}") }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Accueil", fontWeight = FontWeight.Bold) },
+                actions = {
+                    IconButton(onClick = { onNavigateTo("profil") }) {
+                        if (photoUri != null) {
+                            AsyncImage(
+                                model = photoUri,
+                                contentDescription = "Profil",
+                                modifier = Modifier.size(32.dp).clip(CircleShape),
+                                contentScale = ContentScale.Crop
                             )
                         } else {
-                            CreateDossierPlaceholder(onClick = { onNavigateTo("create_dossier") })
+                            Icon(Icons.Default.Person, contentDescription = "Profil")
                         }
-
-                        // Raccourcis secondaires
-                        SecondaryShortcuts(onNavigateTo = onNavigateTo)
                     }
-
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(20.dp)
-                    ) {
-                        // Checklist rapide
-                        QuickChecklist(
-                            dossiers = dossiers,
-                            onNavigateTo = onNavigateTo
-                        )
-
-                        // Messages récents
-                        RecentMessagesSection(onNavigateTo = onNavigateTo)
+                    IconButton(onClick = { dossierViewModel.refresh() }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Actualiser")
                     }
                 }
-            } else {
-                // Mobile layout: single column
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .padding(16.dp),
+            )
+        },
+        modifier = modifier
+    ) { padding ->
+        if (isTablet) {
+            // Tablet layout: 2 columns
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     // Header Client
-                    item {
-                        ClientHeader(
-                            userName = userName,
-                            activeDossiersCount = activeDossiers.size,
-                            hasPendingAction = dossiers.any { it.status == "En attente" || it.progress < 1.0f }
-                        )
-                    }
+                    ClientHeader(
+                        userName = userName,
+                        photoUri = photoUri,
+                        activeDossiersCount = activeDossiers.size,
+                        hasPendingAction = dossiers.any { it.status == "En attente" || it.progress < 1.0f }
+                    )
 
                     // Carte "Mon dossier principal"
                     if (dossiers.isNotEmpty()) {
                         val mainDossier = dossiers.first()
-                        item {
-                            MainDossierCard(
-                                dossierType = mainDossier.type,
-                                status = mainDossier.status,
-                                progress = mainDossier.progress,
-                                ctaText = getCTAForDossier(mainDossier),
-                                onCtaClick = { onNavigateTo("dossier/${mainDossier.id}") }
-                            )
-                        }
-                    } else {
-                        item {
-                            CreateDossierPlaceholder(onClick = { onNavigateTo("create_dossier") })
-                        }
-                    }
-
-                    // Checklist rapide
-                    item {
-                        QuickChecklist(
-                            dossiers = dossiers,
-                            onNavigateTo = onNavigateTo
+                        MainDossierCard(
+                            dossierType = mainDossier.type,
+                            status = mainDossier.status,
+                            progress = mainDossier.progress,
+                            ctaText = getCTAForDossier(mainDossier),
+                            onCtaClick = { onNavigateTo("dossier/${mainDossier.id}") }
                         )
-                    }
-
-                    // Messages récents
-                    item {
-                        RecentMessagesSection(onNavigateTo = onNavigateTo)
+                    } else {
+                        CreateDossierPlaceholder(onClick = { onNavigateTo("create_dossier") })
                     }
 
                     // Raccourcis secondaires
-                    item {
-                        SecondaryShortcuts(onNavigateTo = onNavigateTo)
-                    }
-
-                    item { Spacer(modifier = Modifier.height(80.dp)) }
+                    SecondaryShortcuts(onNavigateTo = onNavigateTo)
                 }
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    // Checklist rapide
+                    QuickChecklist(
+                        dossiers = dossiers,
+                        onNavigateTo = onNavigateTo
+                    )
+
+                    // Messages récents
+                    RecentMessagesSection(onNavigateTo = onNavigateTo)
+                }
+            }
+        } else {
+            // Mobile layout: single column
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                // Header Client
+                item {
+                    ClientHeader(
+                        userName = userName,
+                        photoUri = photoUri,
+                        activeDossiersCount = activeDossiers.size,
+                        hasPendingAction = dossiers.any { it.status == "En attente" || it.progress < 1.0f }
+                    )
+                }
+
+                // Carte "Mon dossier principal"
+                if (dossiers.isNotEmpty()) {
+                    val mainDossier = dossiers.first()
+                    item {
+                        MainDossierCard(
+                            dossierType = mainDossier.type,
+                            status = mainDossier.status,
+                            progress = mainDossier.progress,
+                            ctaText = getCTAForDossier(mainDossier),
+                            onCtaClick = { onNavigateTo("dossier/${mainDossier.id}") }
+                        )
+                    }
+                } else {
+                    item {
+                        CreateDossierPlaceholder(onClick = { onNavigateTo("create_dossier") })
+                    }
+                }
+
+                // Checklist rapide
+                item {
+                    QuickChecklist(
+                        dossiers = dossiers,
+                        onNavigateTo = onNavigateTo
+                    )
+                }
+
+                // Messages récents
+                item {
+                    RecentMessagesSection(onNavigateTo = onNavigateTo)
+                }
+
+                // Raccourcis secondaires
+                item {
+                    SecondaryShortcuts(onNavigateTo = onNavigateTo)
+                }
+
+                item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
     }
@@ -191,6 +191,7 @@ fun ClientHomeScreen(
 @Composable
 fun ClientHeader(
     userName: String?,
+    photoUri: String?,
     activeDossiersCount: Int,
     hasPendingAction: Boolean
 ) {
@@ -205,12 +206,21 @@ fun ClientHeader(
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                (userName?.firstOrNull() ?: 'U').toString().uppercase(),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
+            if (photoUri != null) {
+                AsyncImage(
+                    model = photoUri,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize().clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Text(
+                    (userName?.firstOrNull() ?: 'U').toString().uppercase(),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
         }
         Spacer(modifier = Modifier.width(16.dp))
         Column {
