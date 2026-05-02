@@ -32,10 +32,10 @@ import com.example.misterdil.ui.viewmodels.*
 import com.example.misterdil.data.repository.AuthRepository
 
 class MainActivity : ComponentActivity() {
-    private val authRepository: AuthRepository = (application as MisterdilApplication).authRepository
+    private lateinit var authRepository: AuthRepository
     
     private val authViewModel: AuthViewModel by viewModels {
-        AuthViewModelFactory(authRepository)
+        AuthViewModelFactory((application as MisterdilApplication).authRepository)
     }
     
     private val dossierViewModel: DossierViewModel by viewModels {
@@ -55,6 +55,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        authRepository = (application as MisterdilApplication).authRepository
         enableEdgeToEdge()
         setContent {
             MIsterdilTheme {
