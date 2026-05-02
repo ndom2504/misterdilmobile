@@ -31,8 +31,10 @@ import com.example.misterdil.ui.theme.MIsterdilTheme
 import com.example.misterdil.ui.viewmodels.*
 
 class MainActivity : ComponentActivity() {
+    private val authRepository: AuthRepository = (application as MisterdilApplication).authRepository
+    
     private val authViewModel: AuthViewModel by viewModels {
-        AuthViewModelFactory((application as MisterdilApplication).authRepository)
+        AuthViewModelFactory(authRepository)
     }
     
     private val dossierViewModel: DossierViewModel by viewModels {
@@ -212,7 +214,7 @@ fun MIsterdilApp(
                         AdminProfileScreen(
                             authViewModel = authViewModel,
                             dossierRepository = dossierViewModel.repository,
-                            authRepository = (application as MisterdilApplication).authRepository,
+                            authRepository = authRepository,
                             onLogout = { authViewModel.logout() },
                             modifier = modifier
                         )
@@ -220,13 +222,13 @@ fun MIsterdilApp(
                         ClientProfileScreen(
                             authViewModel = authViewModel,
                             dossierRepository = dossierViewModel.repository,
-                            authRepository = (application as MisterdilApplication).authRepository,
+                            authRepository = authRepository,
                             onLogout = { authViewModel.logout() },
                             modifier = modifier
                         )
                     }
                 }
-                AppDestinations.ADMIN -> AdminScreen(authViewModel, chatViewModel, (application as MisterdilApplication).authRepository, modifier)
+                AppDestinations.ADMIN -> AdminScreen(authViewModel, chatViewModel, authRepository, modifier)
             }
         }
     }
