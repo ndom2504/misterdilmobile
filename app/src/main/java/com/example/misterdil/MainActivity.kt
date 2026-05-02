@@ -59,32 +59,55 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MIsterdilTheme {
-                val isAuthenticated by authViewModel.isAuthenticated.collectAsState()
-                val isAdmin by authViewModel.isAdmin.collectAsState()
-                var introFinished by rememberSaveable { mutableStateOf(false) }
-                var showRegister by rememberSaveable { mutableStateOf(false) }
-
-                when {
-                    !introFinished -> IntroScreen(onFinished = { introFinished = true })
-                    isAuthenticated -> MIsterdilApp(
-                        authViewModel, dossierViewModel, paymentViewModel, chatViewModel, isAdmin
-                    )
-                    showRegister -> RegisterScreen(
-                        viewModel = authViewModel,
-                        onNavigateToLogin = { showRegister = false }
-                    )
-                    else -> LoginScreen(
-                        viewModel = authViewModel,
-                        onNavigateToRegister = { showRegister = true }
-                    )
-                }
+                MainContent(
+                    authRepository = authRepository,
+                    authViewModel = authViewModel,
+                    dossierViewModel = dossierViewModel,
+                    paymentViewModel = paymentViewModel,
+                    chatViewModel = chatViewModel
+                )
             }
         }
     }
 }
 
 @Composable
+fun MainContent(
+    authRepository: AuthRepository,
+    authViewModel: AuthViewModel,
+    dossierViewModel: DossierViewModel,
+    paymentViewModel: PaymentViewModel,
+    chatViewModel: ChatViewModel
+) {
+    val isAuthenticated by authViewModel.isAuthenticated.collectAsState()
+    val isAdmin by authViewModel.isAdmin.collectAsState()
+    var introFinished by rememberSaveable { mutableStateOf(false) }
+    var showRegister by rememberSaveable { mutableStateOf(false) }
+
+    when {
+        !introFinished -> IntroScreen(onFinished = { introFinished = true })
+        isAuthenticated -> MIsterdilApp(
+            authRepository = authRepository,
+            authViewModel = authViewModel,
+            dossierViewModel = dossierViewModel,
+            paymentViewModel = paymentViewModel,
+            chatViewModel = chatViewModel,
+            isAdmin = isAdmin
+        )
+        showRegister -> RegisterScreen(
+            viewModel = authViewModel,
+            onNavigateToLogin = { showRegister = false }
+        )
+        else -> LoginScreen(
+            viewModel = authViewModel,
+            onNavigateToRegister = { showRegister = true }
+        )
+    }
+}
+
+@Composable
 fun MIsterdilApp(
+    authRepository: AuthRepository,
     authViewModel: AuthViewModel,
     dossierViewModel: DossierViewModel,
     paymentViewModel: PaymentViewModel,
@@ -184,6 +207,7 @@ fun MIsterdilApp(
                             onNavigateToPaiement = {
                                 currentDestination = AppDestinations.PAIEMENT
                             },
+                            authRepository = authRepository,
                             modifier = modifier
                         )
                     }
