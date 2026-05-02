@@ -212,6 +212,7 @@ fun MIsterdilApp(
                         AdminProfileScreen(
                             authViewModel = authViewModel,
                             dossierRepository = dossierViewModel.repository,
+                            authRepository = (application as MisterdilApplication).authRepository,
                             onLogout = { authViewModel.logout() },
                             modifier = modifier
                         )
@@ -219,12 +220,13 @@ fun MIsterdilApp(
                         ClientProfileScreen(
                             authViewModel = authViewModel,
                             dossierRepository = dossierViewModel.repository,
+                            authRepository = (application as MisterdilApplication).authRepository,
                             onLogout = { authViewModel.logout() },
                             modifier = modifier
                         )
                     }
                 }
-                AppDestinations.ADMIN -> AdminScreen(authViewModel, chatViewModel, modifier)
+                AppDestinations.ADMIN -> AdminScreen(authViewModel, chatViewModel, (application as MisterdilApplication).authRepository, modifier)
             }
         }
     }

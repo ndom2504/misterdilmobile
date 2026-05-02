@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.misterdil.data.repository.AuthRepository
 import com.example.misterdil.data.repository.DossierRepository
 import kotlinx.coroutines.launch
 import java.io.File
@@ -30,6 +31,7 @@ import java.io.File
 @Composable
 fun ProfileScreen(
     repository: DossierRepository,
+    authRepository: AuthRepository,
     currentName: String,
     currentAvatarUrl: String?,
     userId: String,
@@ -177,7 +179,7 @@ fun ProfileScreen(
                         try {
                             val response = repository.updateProfile(name = name, avatar_url = remoteAvatar)
                             // Sync avatar_url from backend response to DataStore
-                            response.avatar_url?.let { repository.savePhotoUri(it) }
+                            response.avatar_url?.let { authRepository.savePhotoUri(it) }
                         } catch (e: Exception) {
                             // Backend unavailable — local save already done
                         } finally {

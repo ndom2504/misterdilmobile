@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.misterdil.data.repository.AuthRepository
 import com.example.misterdil.data.repository.DossierRepository
 import com.example.misterdil.ui.components.*
 import com.example.misterdil.ui.viewmodels.AuthViewModel
@@ -30,6 +31,7 @@ import com.example.misterdil.ui.viewmodels.AuthViewModel
 fun AdminProfileScreen(
     authViewModel: AuthViewModel,
     dossierRepository: DossierRepository,
+    authRepository: AuthRepository,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -49,6 +51,7 @@ fun AdminProfileScreen(
     if (showEditProfile) {
         ProfileScreen(
             repository = dossierRepository,
+            authRepository = authRepository,
             currentName = userName ?: "",
             currentAvatarUrl = photoUri,
             userId = userId ?: "admin",

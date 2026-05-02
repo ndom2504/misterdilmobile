@@ -47,6 +47,7 @@ const val PAYMENT_MSG_PREFIX = "__PAYMENT__:"
 fun AdminScreen(
     authViewModel: AuthViewModel,
     chatViewModel: ChatViewModel,
+    authRepository: AuthRepository,
     modifier: Modifier = Modifier
 ) {
     val userName by authViewModel.userName.collectAsState()
@@ -62,6 +63,7 @@ fun AdminScreen(
     if (showProfile) {
         ProfileScreen(
             repository = chatViewModel.dossierRepository,
+            authRepository = authRepository,
             currentName = userName ?: "Admin",
             currentAvatarUrl = photoUri,
             userId = userId ?: "admin", // Correction: passage du userId
