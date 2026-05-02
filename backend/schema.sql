@@ -58,6 +58,17 @@ CREATE TABLE messages (
 -- Migration dossier_id (exécuter dans Neon SQL Editor si la table existe déjà)
 -- ALTER TABLE conversations ADD COLUMN IF NOT EXISTS dossier_id UUID REFERENCES dossiers(id);
 
+-- ==========================================
+-- IMPORTANT: DISABLE RLS FOR NEON SERVERLESS
+-- ==========================================
+-- Neon's serverless HTTP client creates a new connection per query.
+-- SET LOCAL (used in middleware for RLS) doesn't persist across connections.
+-- Security is handled at application level via WHERE clauses.
+-- Run this in Neon SQL Editor to fix 500 errors on messages/conversations:
+ALTER TABLE dossiers DISABLE ROW LEVEL SECURITY;
+ALTER TABLE conversations DISABLE ROW LEVEL SECURITY;
+ALTER TABLE messages DISABLE ROW LEVEL SECURITY;
+
 -- Indexes
 CREATE INDEX idx_dossiers_user       ON dossiers(user_id);
 CREATE INDEX idx_conversations_user  ON conversations(user_id);
