@@ -322,8 +322,16 @@ private fun AdminClientDetailScreen(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         uri?.let {
-            val fileName = getFileName(context, it)
-            onSendMessage("${'$'}FILE_MSG_PREFIX${'$'}fileName")
+            scope.launch {
+                try {
+                    val fileUrl = chatViewModel.uploadFile(it)
+                    onSendMessage("${'$'}FILE_MSG_PREFIX${'$'}fileUrl")
+                } catch (e: Exception) {
+                    // Fallback: send filename only
+                    val fileName = getFileName(context, it)
+                    onSendMessage("${'$'}FILE_MSG_PREFIX${'$'}fileName")
+                }
+            }
         }
     }
 

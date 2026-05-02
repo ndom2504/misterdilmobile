@@ -71,7 +71,8 @@ class MisterdilApplication : Application() {
         ChatRepository(
             chatApiService, 
             database.messageDao(),
-            database.conversationDao()
+            database.conversationDao(),
+            this
         )
     }
 

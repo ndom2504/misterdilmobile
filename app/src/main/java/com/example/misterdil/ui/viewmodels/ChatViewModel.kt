@@ -1,5 +1,6 @@
 package com.example.misterdil.ui.viewmodels
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -95,6 +96,10 @@ class ChatViewModel(
 
     fun resetConvCreateState() {
         _convCreateState.value = ConversationCreateState.Idle
+    }
+
+    suspend fun uploadFile(uri: Uri): String {
+        return repository.uploadFile(uri)
     }
 }
 

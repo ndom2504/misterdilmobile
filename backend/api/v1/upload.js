@@ -7,10 +7,8 @@ module.exports = withAuth(async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const contentType = req.headers['content-type'];
-    
-    // For demo: read file from body (base64 or multipart)
-    // In production, use multer or similar for multipart handling
+    // Vercel serverless doesn't support streaming multipart parsing easily
+    // For now, accept base64 file data in JSON body
     const { fileName, fileData } = req.body || {};
 
     if (!fileName || !fileData) {

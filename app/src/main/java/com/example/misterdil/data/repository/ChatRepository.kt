@@ -1,19 +1,26 @@
 package com.example.misterdil.data.repository
 
+import android.content.Context
+import android.net.Uri
+import android.util.Base64
 import com.example.misterdil.data.local.ConversationDao
 import com.example.misterdil.data.local.MessageDao
 import com.example.misterdil.data.models.Conversation
 import com.example.misterdil.data.models.Message
 import com.example.misterdil.data.remote.ChatApiService
 import com.example.misterdil.data.remote.CreateConversationRequest
+import com.example.misterdil.data.remote.UploadRequest
+import com.example.misterdil.utils.getFileName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import java.io.File
 
 class ChatRepository(
     private val apiService: ChatApiService,
     private val messageDao: MessageDao,
-    private val conversationDao: ConversationDao
+    private val conversationDao: ConversationDao,
+    private val context: Context
 ) {
     val allConversations: Flow<List<Conversation>> = conversationDao.getAllConversations()
 
@@ -74,6 +81,22 @@ class ChatRepository(
             conversationDao.insertConversations(listOf(conversation))
             // Message auto-généré supprimé - le client envoie maintenant un message de récapitulatif personnalisé
             conversation.id
+        }
+    }
+
+    suspend fun uploadFile(uri: Uri): String {
+        return withContext(Dispatchers.IO) {
+            val fileName = getFileName(context, uri)
+            val file = File(context.cacheDir, fileName)
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                file.outputStream().use { output -> input.copyTo(output) }
+            }
+
+            val fileBytes = file.readBytes()
+            val base64Data = Base64.encodeToString(fileBytes, Base64.NO_WRAP)
+            
+            val response = apiService.uploadFile(UploadRequest(fileName, base64Data))
+            response.fileUrl
         }
     }
 }

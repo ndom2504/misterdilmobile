@@ -90,7 +90,8 @@ fun MessagerieScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier, on
             onSendMessage = { viewModel.sendMessage(it) },
             onBack = { selectedConversationId = null },
             onNavigateToPaiement = onNavigateToPaiement,
-            modifier = modifier
+            modifier = modifier,
+            viewModel = viewModel
         )
     }
 }
@@ -104,18 +105,35 @@ fun ChatDetailScreen(
     onSendMessage: (String) -> Unit,
     onBack: () -> Unit,
     onNavigateToPaiement: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: ChatViewModel? = null
 ) {
     var textState by remember { mutableStateOf("") }
+    var isUploading by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         uri?.let {
-            val fileName = getFileName(context, it)
-            // Simulation d'envoi de fichier (devrait être un upload multipart)
-            onSendMessage("$FILE_MSG_PREFIX$fileName")
+            isUploading = true
+            scope.launch {
+                try {
+                    if (viewModel != null) {
+                        val fileUrl = viewModel.uploadFile(it)
+                        onSendMessage("$FILE_MSG_PREFIX$fileUrl")
+                    } else {
+                        // Fallback: send filename only
+                        val fileName = getFileName(context, it)
+                        onSendMessage("$FILE_MSG_PREFIX$fileName")
+                    }
+                } catch (e: Exception) {
+                    // Handle error
+                } finally {
+                    isUploading = false
+                }
+            }
         }
     }
 
