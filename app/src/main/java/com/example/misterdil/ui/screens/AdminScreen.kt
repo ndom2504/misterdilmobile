@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.misterdil.data.models.Conversation
 import com.example.misterdil.data.models.Message
+import com.example.misterdil.data.repository.AuthRepository
 import com.example.misterdil.ui.components.*
 import com.example.misterdil.ui.viewmodels.AuthViewModel
 import com.example.misterdil.ui.viewmodels.ChatViewModel
