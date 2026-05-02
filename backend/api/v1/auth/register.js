@@ -28,7 +28,7 @@ module.exports = async (req, res) => {
     const result = await sql`
       INSERT INTO users (email, password_hash, name, role)
       VALUES (${email.toLowerCase()}, ${passwordHash}, ${name}, ${role})
-      RETURNING id, email, name, role
+      RETURNING id, email, name, role, avatar_url
     `;
 
     const user = result[0];
@@ -40,6 +40,7 @@ module.exports = async (req, res) => {
       email: user.email,
       name: user.name,
       role: user.role,
+      avatar_url: user.avatar_url
     });
   } catch (err) {
     console.error('Register error:', err);

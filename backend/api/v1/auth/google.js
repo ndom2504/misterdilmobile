@@ -19,14 +19,14 @@ module.exports = async (req, res) => {
     const payload = ticket.getPayload();
     const { email, name, sub: googleId } = payload;
 
-    let users = await sql`SELECT id, email, name, role FROM users WHERE email = ${email.toLowerCase()} LIMIT 1`;
+    let users = await sql`SELECT id, email, name, role, avatar_url FROM users WHERE email = ${email.toLowerCase()} LIMIT 1`;
     let user = users[0];
 
     if (!user) {
       const result = await sql`
         INSERT INTO users (email, password_hash, name, role)
         VALUES (${email.toLowerCase()}, ${`google_${googleId}`}, ${name}, 'user')
-        RETURNING id, email, name, role
+        RETURNING id, email, name, role, avatar_url
       `;
       user = result[0];
     }
@@ -39,6 +39,7 @@ module.exports = async (req, res) => {
       email: user.email,
       name: user.name,
       role: user.role,
+      avatar_url: user.avatar_url
     });
   } catch (err) {
     console.error('Google auth error:', err);

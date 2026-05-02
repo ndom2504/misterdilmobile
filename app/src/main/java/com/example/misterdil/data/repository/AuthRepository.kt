@@ -30,17 +30,17 @@ class AuthRepository(
 
     suspend fun login(email: String, password: String) {
         val r = apiService.login(LoginRequest(email, password))
-        saveSession(r.token, r.role, r.name, email, r.userId)
+        saveSession(r.token, r.role, r.name, email, r.userId, r.avatarUrl)
     }
 
     suspend fun register(name: String, email: String, password: String, role: String) {
         val r = apiService.register(RegisterRequest(name, email, password, role))
-        saveSession(r.token, r.role, r.name, email, r.userId)
+        saveSession(r.token, r.role, r.name, email, r.userId, r.avatarUrl)
     }
 
     suspend fun loginWithGoogle(idToken: String) {
         val r = apiService.googleAuth(GoogleAuthRequest(idToken))
-        saveSession(r.token, r.role, r.name, "", r.userId)
+        saveSession(r.token, r.role, r.name, "", r.userId, r.avatarUrl)
     }
 
     suspend fun savePhotoUri(uri: String) {
@@ -73,13 +73,16 @@ class AuthRepository(
         context.dataStore.edit { it.clear() }
     }
 
-    private suspend fun saveSession(token: String, role: String, name: String, email: String, userId: String) {
+    private suspend fun saveSession(token: String, role: String, name: String, email: String, userId: String, avatarUrl: String? = null) {
         context.dataStore.edit { prefs ->
             prefs[TOKEN_KEY]   = token
             prefs[ROLE_KEY]    = role
             prefs[NAME_KEY]    = name
             prefs[EMAIL_KEY]   = email
             prefs[USER_ID_KEY] = userId
+            if (avatarUrl != null) {
+                prefs[PHOTO_URI_KEY] = avatarUrl
+            }
         }
     }
 }

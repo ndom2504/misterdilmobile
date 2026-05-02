@@ -41,7 +41,8 @@ data class AuthResponse(
     @SerializedName("user_id") val userId: String,
     @SerializedName("email") val email: String,
     @SerializedName("name") val name: String,
-    @SerializedName("role") val role: String = "user"
+    @SerializedName("role") val role: String = "user",
+    @SerializedName("avatar_url") val avatarUrl: String? = null
 )
 
 data class ProfileResponse(
