@@ -18,6 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -89,7 +90,8 @@ fun AdminScreen(
             messages = messages,
             onSendMessage = { chatViewModel.sendMessage(it) },
             onBack = { selectedConvId = null },
-            modifier = modifier
+            modifier = modifier,
+            chatViewModel = chatViewModel
         )
     }
 }
@@ -303,13 +305,15 @@ private fun AdminClientDetailScreen(
     messages: List<Message>,
     onSendMessage: (String) -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    chatViewModel: ChatViewModel
 ) {
     var textState by remember { mutableStateOf("") }
     var showPaymentDialog by remember { mutableStateOf(false) }
     var paymentAmount by remember { mutableStateOf("") }
     var paymentDesc by remember { mutableStateOf("") }
     var showActionButtons by remember { mutableStateOf(true) }
+    val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
     LaunchedEffect(messages.size) {
