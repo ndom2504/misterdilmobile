@@ -56,8 +56,9 @@ class AuthRepository(
         context.dataStore.edit { it.clear() }
     }
 
-    suspend fun updateProfile(name: String, phone: String, language: String): ProfileResponse {
-        return apiService.updateProfile(UpdateProfileRequest(name, phone, language))
+    suspend fun updateProfile(name: String, phone: String, language: String, avatar_url: String? = null): AuthResponse {
+        // Use a different endpoint that returns the full user object
+        return apiService.updateProfileFull(UpdateProfileRequest(name, phone, language, avatar_url))
     }
 
     suspend fun changePassword(currentPassword: String, newPassword: String) {

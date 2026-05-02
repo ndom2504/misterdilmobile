@@ -23,7 +23,8 @@ data class GoogleAuthRequest(
 data class UpdateProfileRequest(
     @SerializedName("name") val name: String,
     @SerializedName("phone") val phone: String,
-    @SerializedName("language") val language: String
+    @SerializedName("language") val language: String,
+    @SerializedName("avatar_url") val avatar_url: String? = null
 )
 
 data class ChangePasswordRequest(
@@ -67,6 +68,9 @@ interface AuthApiService {
 
     @PUT("auth/profile")
     suspend fun updateProfile(@Body request: UpdateProfileRequest): ProfileResponse
+
+    @PUT("auth/profile")
+    suspend fun updateProfileFull(@Body request: UpdateProfileRequest): AuthResponse
 
     @POST("auth/change-password")
     suspend fun changePassword(@Body request: ChangePasswordRequest)

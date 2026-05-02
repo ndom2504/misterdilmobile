@@ -1,5 +1,8 @@
 package com.example.misterdil.ui.screens
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,7 +14,12 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import com.example.misterdil.utils.FILE_MSG_PREFIX
+import com.example.misterdil.utils.getFileName
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
@@ -26,6 +34,7 @@ import com.example.misterdil.ui.viewmodels.ChatViewModel
 fun ClientMessagingScreen(
     viewModel: ChatViewModel,
     onNavigateToDossier: (String) -> Unit = {},
+    onNavigateToPaiement: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var selectedConversation by remember { mutableStateOf<Conversation?>(null) }
@@ -53,6 +62,7 @@ fun ClientMessagingScreen(
                     conversation = selectedConversation!!,
                     onBack = { selectedConversation = null },
                     onNavigateToDossier = onNavigateToDossier,
+                    onNavigateToPaiement = onNavigateToPaiement,
                     viewModel = viewModel,
                     modifier = Modifier.fillMaxSize()
                 )
@@ -77,6 +87,7 @@ fun ClientMessagingScreen(
                 conversation = selectedConversation!!,
                 onBack = { selectedConversation = null },
                 onNavigateToDossier = onNavigateToDossier,
+                onNavigateToPaiement = onNavigateToPaiement,
                 viewModel = viewModel,
                 modifier = modifier
             )
@@ -127,10 +138,38 @@ fun ConversationDetailScreen(
     onBack: () -> Unit,
     onNavigateToDossier: (String) -> Unit,
     viewModel: ChatViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onNavigateToPaiement: (() -> Unit)? = null
 ) {
     var messageText by remember { mutableStateOf("") }
     val messages by viewModel.messages.collectAsState()
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    // Detect payment messages from admin
+    LaunchedEffect(messages) {
+        val lastMessage = messages.lastOrNull()
+        if (lastMessage != null && !lastMessage.isFromMe && lastMessage.text.startsWith("__PAYMENT__:")) {
+            onNavigateToPaiement?.invoke()
+        }
+    }
+
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        uri?.let {
+            scope.launch {
+                try {
+                    val fileUrl = viewModel.uploadFile(it)
+                    viewModel.sendMessage("${'$'}FILE_MSG_PREFIX${'$'}fileUrl")
+                } catch (e: Exception) {
+                    // Fallback: send filename only
+                    val fileName = getFileName(context, it)
+                    viewModel.sendMessage("${'$'}FILE_MSG_PREFIX${'$'}fileName")
+                }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -158,7 +197,7 @@ fun ConversationDetailScreen(
             }
             HorizontalDivider()
             Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { /* File picker */ }) { Icon(Icons.Default.AttachFile, null) }
+                IconButton(onClick = { filePickerLauncher.launch(arrayOf("*/*")) }) { Icon(Icons.Default.AttachFile, null) }
                 OutlinedTextField(
                     value = messageText,
                     onValueChange = { messageText = it },

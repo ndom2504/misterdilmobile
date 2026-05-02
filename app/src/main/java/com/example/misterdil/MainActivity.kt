@@ -177,6 +177,9 @@ fun MIsterdilApp(
                                 dossierViewModel.navigateToDossier(id)
                                 currentDestination = AppDestinations.DOSSIER
                             },
+                            onNavigateToPaiement = {
+                                currentDestination = AppDestinations.PAIEMENT
+                            },
                             modifier = modifier
                         )
                     }
