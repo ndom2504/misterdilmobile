@@ -91,7 +91,9 @@ fun MessagerieScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier, on
             messages = messages,
             onSendMessage = { viewModel.sendMessage(it) },
             onBack = { selectedConversationId = null },
-            onNavigateToPaiement = onNavigateToPaiement,
+            onNavigateToPaiement = { paymentData ->
+                onNavigateToPaiement?.invoke()
+            },
             modifier = modifier,
             viewModel = viewModel
         )
@@ -106,7 +108,7 @@ fun ChatDetailScreen(
     messages: List<Message>,
     onSendMessage: (String) -> Unit,
     onBack: () -> Unit,
-    onNavigateToPaiement: (() -> Unit)? = null,
+    onNavigateToPaiement: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier,
     viewModel: ChatViewModel? = null
 ) {
@@ -114,6 +116,15 @@ fun ChatDetailScreen(
     var isUploading by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    // Detect payment messages from admin and trigger payment flow
+    LaunchedEffect(messages) {
+        val lastMessage = messages.lastOrNull()
+        if (lastMessage != null && !lastMessage.isFromMe && lastMessage.text.startsWith("__PAYMENT__:")) {
+            val paymentData = lastMessage.text.removePrefix("__PAYMENT__:")
+            onNavigateToPaiement?.invoke(paymentData)
+        }
+    }
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
