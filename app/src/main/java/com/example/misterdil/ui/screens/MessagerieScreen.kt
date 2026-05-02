@@ -106,7 +106,7 @@ fun ChatDetailScreen(
     messages: List<Message>,
     onSendMessage: (String) -> Unit,
     onBack: () -> Unit,
-    onNavigateToPaiement: ((String) -> Unit)? = null,
+    onNavigateToPaiement: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     viewModel: ChatViewModel? = null
 ) {
@@ -119,8 +119,7 @@ fun ChatDetailScreen(
     LaunchedEffect(messages) {
         val lastMessage = messages.lastOrNull()
         if (lastMessage != null && !lastMessage.isFromMe && lastMessage.text.startsWith("__PAYMENT__:")) {
-            val paymentData = lastMessage.text.removePrefix("__PAYMENT__:")
-            onNavigateToPaiement?.invoke(paymentData)
+            onNavigateToPaiement?.invoke()
         }
     }
 
