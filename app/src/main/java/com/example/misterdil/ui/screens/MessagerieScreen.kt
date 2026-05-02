@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import kotlinx.coroutines.launch
 import com.example.misterdil.data.models.Conversation
 import com.example.misterdil.data.models.Message
 import com.example.misterdil.ui.components.ConversationItem
