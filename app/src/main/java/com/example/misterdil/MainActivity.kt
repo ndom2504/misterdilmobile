@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.misterdil.ui.screens.*
 import com.example.misterdil.ui.theme.MIsterdilTheme
 import com.example.misterdil.ui.viewmodels.*
+import com.example.misterdil.data.repository.AuthRepository
 
 class MainActivity : ComponentActivity() {
     private val authRepository: AuthRepository = (application as MisterdilApplication).authRepository
